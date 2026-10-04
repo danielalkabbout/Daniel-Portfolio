@@ -1,0 +1,21 @@
+/* Design tokens, copied from the current portfolio so Phase 4 can match it exactly. */
+:root {
+  --bg: #0b1324; --bg2: #0f1a31; --surface: #142240; --surface2: #1a2b4f;
+  --ink: #edf2fb; --muted: #93a3bf; --line: #243556;
+  --sky: #6fb8ff; --sun: #ffc95c; --mint: #5fd3b4; --on-sky: #06182e;
+  --shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.55);
+  --font-display: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sign: 'Herr Von Muellerhoff', 'Segoe Script', cursive;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius-sm: 10px; --radius: 18px; --radius-lg: 26px;
+  --wrap: 1180px;
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  --bg: #f4f7fc; --bg2: #eaf0f9; --surface: #ffffff; --surface2: #eef3fb;
+  --ink: #0e1b33; --muted: #52627e; --line: #d5deec;
+  --sky: #1c6fd1; --sun: #b77800; --mint: #0f8a6c; --on-sky: #ffffff;
+  --shadow: 0 20px 50px -24px rgba(14, 27, 51, 0.28);
+  color-scheme: light;
+}
