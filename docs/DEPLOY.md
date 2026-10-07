@@ -47,8 +47,8 @@ to reset a forgotten password or unlock the account.
 
 3. Press **Apply**. The first build takes a few minutes. On first start the API creates the
    tables and adds your content by itself.
-4. Check `https://daniel-portfolio-api.onrender.com/health` says **Healthy**, and
-   `https://daniel-portfolio-api.onrender.com/api/content` returns your content.
+4. Check `https://danielalkabbout.onrender.com/health` says **Healthy**, and
+   `https://danielalkabbout.onrender.com/api/content` returns your content.
    (If Render picked a different name, use the address shown on the service page.)
 
 On the free plan the API sleeps after 15 minutes without visitors and takes about a minute to wake.
@@ -75,7 +75,7 @@ The website never waits for it: it shows the content baked in at build time and 
 | Name | Value |
 | --- | --- |
 | `NODE_VERSION` | `22` |
-| `VITE_API_URL` | `https://daniel-portfolio-api.onrender.com` |
+| `VITE_API_URL` | `https://danielalkabbout.onrender.com` |
 
 5. **Save and deploy**. The site goes live at `https://daniel-portfolio.pages.dev`.
    If the address is different, update `Cors__Origins__0` on Render to match.
@@ -125,7 +125,7 @@ rebuilds the website, then checks production. Nothing deploys if a test fails.
 | --- | --- | --- |
 | Secret | `RENDER_DEPLOY_HOOK_URL` | the Render deploy hook from step 1 |
 | Secret | `PAGES_DEPLOY_HOOK_URL` | the Pages deploy hook from step 5 |
-| Variable | `API_URL` | `https://daniel-portfolio-api.onrender.com` |
+| Variable | `API_URL` | `https://danielalkabbout.onrender.com` |
 | Variable | `SITE_URL` | `https://daniel-portfolio.pages.dev` |
 
 4. **Actions** tab > **Pipeline** > **Run workflow**, tick "Redeploy", and watch it go green.

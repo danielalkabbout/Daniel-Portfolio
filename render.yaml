@@ -2,7 +2,7 @@
 # Render dashboard > New > Blueprint > pick this repo. It asks once for every value marked sync: false.
 services:
   - type: web
-    name: daniel-portfolio-api
+    name: danielalkabbout # the address becomes https://danielalkabbout.onrender.com
     runtime: docker
     plan: free
     region: frankfurt # same region as the Neon database
