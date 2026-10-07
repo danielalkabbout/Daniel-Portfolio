@@ -1,0 +1,604 @@
+{
+  "version": 1,
+  "updatedAt": null,
+  "profile": {
+    "status": "Open to relocation and new projects",
+    "hello": "Hi, I'm Daniel",
+    "headline": "I design and build",
+    "rotating": [
+      "AI agents.",
+      "WhatsApp bots.",
+      "web apps.",
+      "mobile apps.",
+      "backend APIs."
+    ],
+    "intro": "AI Software Engineer and Technical Lead at SoftFlow Group.",
+    "introRest": "I turn company data into smart assistants, and write the solid backends behind them in C#, Java and Python.",
+    "email": "danielalkabbout@gmail.com",
+    "whatsapp": "96171522745",
+    "phone": "+961 71 522 745",
+    "linkedin": "https://www.linkedin.com/in/daniel-alkabbout",
+    "github": "https://github.com/danielalkabbout",
+    "teamStat": "3"
+  },
+  "highlights": [
+    {
+      "n": "3",
+      "t": "developers I lead on AI and integration projects"
+    },
+    {
+      "n": "12",
+      "t": "SPFx web parts for SharePoint Online and on-premises"
+    },
+    {
+      "n": "~10",
+      "t": "Power Automate flows and Power Apps forms replacing email approvals"
+    },
+    {
+      "n": "12",
+      "t": "Microsoft Copilot training sessions for managers and staff"
+    }
+  ],
+  "projects": [
+    {
+      "id": "sharepoint-ldap",
+      "title": "SharePoint On-Premises data retrieval with LDAP",
+      "short": "SharePoint + LDAP",
+      "kind": "Work project, .NET",
+      "tagline": "Work, .NET",
+      "summary": "An ASP.NET Core service built at work that connects to an LDAP server to retrieve data for SharePoint on-premises.",
+      "reel": "An ASP.NET Core service that connects to an LDAP server to retrieve data for SharePoint on-premises.",
+      "features": [
+        "Built with ASP.NET Core and C#",
+        "Connects to the organization's LDAP server to retrieve directory data",
+        "Makes that data available to SharePoint on-premises",
+        "Built for a real workplace, as part of my job"
+      ],
+      "tags": [
+        "C#",
+        "ASP.NET Core",
+        "LDAP",
+        "SharePoint On-Premises"
+      ],
+      "github": "",
+      "live": "",
+      "demo": "ldap",
+      "icon": "data",
+      "image": "",
+      "visible": true,
+      "home": true
+    },
+    {
+      "id": "whatsapp",
+      "title": "WhatsApp AI Assistant for Microsoft 365",
+      "short": "WhatsApp AI Assistant",
+      "kind": "AI assistant",
+      "tagline": "AI, WhatsApp",
+      "summary": "A WhatsApp bot connected to SharePoint, Outlook, Outlook Calendar and Microsoft Teams through the Microsoft Graph API, with a GPT-4o mini assistant built in.",
+      "reel": "SharePoint, Outlook, Calendar and Teams from a WhatsApp chat, with a GPT-4o mini assistant and voice messages.",
+      "features": [
+        "Ask questions about SharePoint files",
+        "Upload files to SharePoint straight from WhatsApp",
+        "Write and send emails, and schedule meetings",
+        "Speak instead of typing: voice messages are transcribed with Azure AI Speech"
+      ],
+      "tags": [
+        "TypeScript",
+        "WhatsApp Cloud API",
+        "Microsoft Graph API",
+        "GPT-4o mini",
+        "Azure AI Speech"
+      ],
+      "github": "https://github.com/danielalkabbout/WhatsApp-Chatbot",
+      "live": "",
+      "demo": "whatsapp",
+      "icon": "whatsapp",
+      "image": "",
+      "visible": true,
+      "home": true
+    },
+    {
+      "id": "noise",
+      "title": "Live noise cancellation model",
+      "short": "Noise cancellation",
+      "kind": "Machine learning, audio",
+      "tagline": "Machine learning",
+      "summary": "A model that works out what the background noise in an audio clip is, then removes it using reference recordings of that kind of noise. Integrated with Microsoft Teams.",
+      "reel": "A CNN trained on UrbanSound8K spots the background noise, then spectral gating removes it. Integrated with Teams.",
+      "features": [
+        "CNN trained on the UrbanSound8K dataset to classify background noise",
+        "Spectral gating with noisereduce, using reference recordings of each noise type",
+        "Integrated with Microsoft Teams"
+      ],
+      "tags": [
+        "Python",
+        "CNN",
+        "UrbanSound8K",
+        "noisereduce",
+        "Microsoft Teams"
+      ],
+      "github": "https://github.com/danielalkabbout/Noise-cancellation-Model",
+      "live": "",
+      "demo": "noise",
+      "icon": "noise",
+      "image": "",
+      "visible": true,
+      "home": true
+    },
+    {
+      "id": "booking",
+      "title": "WhatsApp appointment booking bot for doctors",
+      "short": "Appointment booking bot",
+      "kind": "WhatsApp bot",
+      "tagline": "WhatsApp",
+      "summary": "A chatbot that lets patients book appointments with doctors through WhatsApp, with every booking stored in a SQL database.",
+      "reel": "Patients book appointments with doctors through WhatsApp, with bookings stored in a SQL database.",
+      "features": [
+        "Patients book with a doctor in a WhatsApp chat",
+        "Bookings are stored in a SQL database",
+        "Built on the WhatsApp Cloud API"
+      ],
+      "tags": [
+        "TypeScript",
+        "WhatsApp Cloud API",
+        "SQL"
+      ],
+      "github": "",
+      "live": "",
+      "demo": "booking",
+      "icon": "booking",
+      "image": "",
+      "visible": true,
+      "home": true
+    },
+    {
+      "id": "detector",
+      "title": "Apple and banana detection app",
+      "short": "Fruit detection app",
+      "kind": "Computer vision",
+      "tagline": "Computer vision",
+      "summary": "A Flask web app that runs a custom-trained YOLOv8s model on uploaded photos and draws labelled bounding boxes around each apple and banana.",
+      "reel": "A Flask web app running a custom-trained YOLOv8s model that boxes every apple and banana in a photo.",
+      "features": [
+        "Custom-trained YOLOv8s model for two classes: apple and banana",
+        "Upload a photo in the browser and get labelled bounding boxes back",
+        "Served as a Flask web app"
+      ],
+      "tags": [
+        "Python",
+        "Flask",
+        "YOLOv8s",
+        "Object detection"
+      ],
+      "github": "https://github.com/danielalkabbout/Apple-Banana-Detector",
+      "live": "",
+      "demo": "detector",
+      "icon": "detector",
+      "image": "",
+      "visible": true,
+      "home": true
+    },
+    {
+      "id": "todo",
+      "title": "To-do REST API",
+      "short": "To-do REST API",
+      "kind": "Backend",
+      "tagline": "Backend",
+      "summary": "A backend API for creating, updating and tracking tasks, built with ASP.NET Core and Entity Framework Core on a MySQL database.",
+      "reel": "A backend API for creating, updating and tracking tasks, using Entity Framework Core with MySQL.",
+      "features": [
+        "Create, update and track tasks over REST",
+        "Entity Framework Core for data access",
+        "MySQL database"
+      ],
+      "tags": [
+        "C#",
+        "ASP.NET Core",
+        "Entity Framework Core",
+        "MySQL"
+      ],
+      "github": "https://github.com/danielalkabbout/Taskify",
+      "live": "",
+      "demo": "todo",
+      "icon": "todo",
+      "image": "",
+      "visible": true,
+      "home": true
+    }
+  ],
+  "experience": [
+    {
+      "id": "lead",
+      "title": "AI Software Engineer / Technical Lead",
+      "short": "Tech Lead",
+      "org": "SoftFlow Group",
+      "start": "2026-04",
+      "end": null,
+      "type": "Current",
+      "metrics": [
+        [
+          "3",
+          "developers led"
+        ],
+        [
+          "2",
+          "Copilot Studio agents shipped"
+        ]
+      ],
+      "bullets": [
+        "Lead a team of three developers: I split the work, set the technical approach for each project, and review what goes out to clients.",
+        "Built two Copilot Studio agents that answer staff questions from SharePoint documents and SQL Server data, deployed in Microsoft Teams.",
+        "Built a WhatsApp bot for The Net Holding on the WhatsApp Cloud API and handled their Meta Business Verification, including fixing rejected documents and verifying the domain.",
+        "Currently adding AI features to an enterprise social media product using Azure OpenAI.",
+        "Meet with clients to scope each agent before we build it: what data it can access, who uses it, and what it should not do."
+      ],
+      "tags": [
+        "Copilot Studio",
+        "Azure OpenAI",
+        "Azure AI Foundry",
+        "SharePoint",
+        "SQL Server",
+        "Microsoft Teams",
+        "WhatsApp Cloud API"
+      ],
+      "milestone": false
+    },
+    {
+      "id": "grad",
+      "title": "Graduated, BSc in Computer Science",
+      "org": "Antonine University",
+      "start": "2026-01",
+      "milestone": true
+    },
+    {
+      "id": "junior",
+      "title": "Junior Software Developer and Copilot Enablement Officer",
+      "short": "Junior Developer",
+      "org": "SoftFlow Group",
+      "start": "2024-09",
+      "end": "2026-03",
+      "type": "",
+      "metrics": [
+        [
+          "12",
+          "SPFx web parts"
+        ],
+        [
+          "~10",
+          "flows and forms"
+        ],
+        [
+          "12",
+          "Copilot trainings"
+        ]
+      ],
+      "bullets": [
+        "Developed 12 SPFx web parts in React and TypeScript, 8 for SharePoint Online and 4 for on-premises SharePoint.",
+        "Built around 10 Power Automate flows and Power Apps forms on top of SharePoint lists, mostly for approvals and requests that used to go through email.",
+        "Worked on backend features for internal and client applications in C#, ASP.NET MVC and SQL Server.",
+        "Ran 12 Microsoft Copilot training sessions for managers and staff at AFC, AFC Live and Aïshti."
+      ],
+      "tags": [
+        "SPFx",
+        "React",
+        "TypeScript",
+        "Power Automate",
+        "Power Apps",
+        "C#",
+        "ASP.NET MVC",
+        "SQL Server"
+      ],
+      "milestone": false
+    },
+    {
+      "id": "spfx",
+      "title": "SPFx Developer Intern",
+      "short": "Intern",
+      "org": "SoftFlow Group",
+      "start": "2024-06",
+      "end": "2024-08",
+      "type": "Internship",
+      "metrics": [],
+      "bullets": [
+        "Set up and customized SharePoint sites for document management and team collaboration.",
+        "Built my first Power Automate flows to replace repetitive manual steps."
+      ],
+      "tags": [
+        "SharePoint",
+        "Power Automate"
+      ],
+      "milestone": false
+    },
+    {
+      "id": "pc",
+      "title": "Front-End Developer Intern",
+      "short": "Intern",
+      "org": "Professional Computers",
+      "start": "2024-06",
+      "end": "2024-08",
+      "type": "Part-time internship",
+      "metrics": [],
+      "bullets": [
+        "Designed the vendor dashboard for a multi-vendor e-commerce site (sales, orders, inventory).",
+        "Built the vendor shop pages."
+      ],
+      "tags": [
+        "Front-end",
+        "Dashboard design"
+      ],
+      "milestone": false
+    },
+    {
+      "id": "eurisko",
+      "title": "Java and Spring Boot Intern",
+      "short": "Intern",
+      "org": "Eurisko Mobility",
+      "start": "2024-02",
+      "end": "2024-04",
+      "type": "Internship",
+      "metrics": [],
+      "bullets": [
+        "Built REST APIs in Spring Boot with Hibernate/JPA.",
+        "Added login and role-based access with Spring Security, JWT and OAuth2, and configured CORS and CSRF."
+      ],
+      "tags": [
+        "Java",
+        "Spring Boot",
+        "Hibernate",
+        "JPA",
+        "Spring Security",
+        "JWT",
+        "OAuth2"
+      ],
+      "milestone": false
+    }
+  ],
+  "clients": [
+    "The Net Holding",
+    "AFC",
+    "AFC Live",
+    "Aïshti"
+  ],
+  "skills": [
+    {
+      "name": "AI and machine learning",
+      "desc": "Where most of my time goes: agents grounded in company data, and the models behind them.",
+      "items": [
+        "Generative AI",
+        "LLMs",
+        "AI agents",
+        "RAG",
+        "Azure OpenAI",
+        "Azure AI Foundry",
+        "Copilot Studio",
+        "GPT-4o mini",
+        "Azure AI Speech",
+        "Prompt engineering",
+        "Embeddings",
+        "Vector search",
+        "Machine learning",
+        "Deep learning",
+        "CNNs",
+        "Computer vision",
+        "Object detection",
+        "YOLOv8",
+        "NLP"
+      ]
+    },
+    {
+      "name": "Languages",
+      "desc": "",
+      "items": [
+        "C#",
+        "Java",
+        "Python",
+        "TypeScript",
+        "JavaScript",
+        "SQL",
+        "React",
+        "React Native",
+        "HTML",
+        "CSS"
+      ]
+    },
+    {
+      "name": "Backend",
+      "desc": "",
+      "items": [
+        ".NET",
+        "ASP.NET Core",
+        "ASP.NET MVC",
+        "Web API",
+        "Spring Boot",
+        "Spring Framework",
+        "Hibernate",
+        "JPA",
+        "EF Core",
+        "Flask",
+        "Node.js",
+        "REST APIs",
+        "Microservices",
+        "Webhooks",
+        "API integration"
+      ]
+    },
+    {
+      "name": "Microsoft and integrations",
+      "desc": "",
+      "items": [
+        "WhatsApp Cloud API",
+        "Meta Graph API",
+        "Microsoft Graph API",
+        "Microsoft 365",
+        "SharePoint Online",
+        "SharePoint On-Premises",
+        "SPFx",
+        "Microsoft Teams",
+        "Power Automate",
+        "Power Apps",
+        "Power Platform"
+      ]
+    },
+    {
+      "name": "Security",
+      "desc": "",
+      "items": [
+        "Authentication",
+        "Authorization",
+        "JWT",
+        "OAuth 2.0",
+        "Spring Security",
+        "RBAC",
+        "CORS",
+        "CSRF"
+      ]
+    },
+    {
+      "name": "Data",
+      "desc": "",
+      "items": [
+        "SQL Server",
+        "MySQL",
+        "Relational databases",
+        "MongoDB",
+        "NoSQL"
+      ]
+    },
+    {
+      "name": "Cloud and DevOps",
+      "desc": "",
+      "items": [
+        "Microsoft Azure",
+        "Azure DevOps",
+        "CI/CD pipelines",
+        "Docker",
+        "Git",
+        "GitHub"
+      ]
+    },
+    {
+      "name": "Practices",
+      "desc": "",
+      "items": [
+        "OOP",
+        "SDLC",
+        "Code review",
+        "Technical leadership",
+        "Requirements gathering"
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": "ai",
+      "visual": "ai",
+      "chip": "AI agent",
+      "title": "AI agents on your company data",
+      "desc": "Agents built with Azure OpenAI, Azure AI Foundry or Copilot Studio that answer from your SharePoint documents and SQL Server data, right inside Microsoft Teams or WhatsApp.",
+      "proof": "Recent: two Copilot Studio agents answering staff questions in Teams.",
+      "visible": true
+    },
+    {
+      "id": "wa",
+      "visual": "wa",
+      "chip": "WhatsApp bot",
+      "title": "WhatsApp bots",
+      "desc": "Bots on the WhatsApp Cloud API for bookings, customer questions or internal requests, plus help with Meta Business Verification.",
+      "proof": "Built a WhatsApp bot for The Net Holding and handled their Meta verification.",
+      "visible": true
+    },
+    {
+      "id": "web",
+      "visual": "web",
+      "chip": "Website or web app",
+      "title": "Websites and web apps",
+      "desc": "Responsive sites, dashboards and web apps in React and TypeScript, connected to your data.",
+      "proof": "Designed a vendor dashboard and shop pages for a multi-vendor store.",
+      "visible": true
+    },
+    {
+      "id": "mob",
+      "visual": "mob",
+      "chip": "Mobile app",
+      "title": "Mobile apps",
+      "desc": "Cross-platform iOS and Android apps with React Native, backed by a secure API.",
+      "proof": "One codebase for both platforms, backend included.",
+      "visible": true
+    },
+    {
+      "id": "sp",
+      "visual": "sp",
+      "chip": "SharePoint or Power Platform",
+      "title": "SharePoint and Power Platform",
+      "desc": "SPFx web parts for SharePoint Online or on-premises, plus Power Automate flows and Power Apps forms that move approvals out of email.",
+      "proof": "12 SPFx web parts and around 10 flows and forms delivered.",
+      "visible": true
+    },
+    {
+      "id": "api",
+      "visual": "api",
+      "chip": "Backend or API",
+      "title": "Backend and APIs",
+      "desc": "REST APIs in ASP.NET Core or Spring Boot with JWT and OAuth 2.0, on SQL Server, MySQL or MongoDB.",
+      "proof": "Backend features for client apps in C#, ASP.NET MVC and SQL Server.",
+      "visible": true
+    },
+    {
+      "id": "tr",
+      "visual": "tr",
+      "chip": "Copilot training",
+      "title": "Microsoft Copilot training",
+      "desc": "Hands-on sessions that show managers and staff how to use Microsoft Copilot in their daily work.",
+      "proof": "12 sessions delivered for AFC, AFC Live and Aïshti.",
+      "visible": true
+    }
+  ],
+  "education": [
+    {
+      "title": "BSc in Computer Science",
+      "detail": "Antonine University, Lebanon. Graduated January 2026"
+    }
+  ],
+  "certifications": [
+    {
+      "title": "Machine Learning Specialization",
+      "detail": "Zaka, 2025. Data Science, Deep Learning, Computer Vision, NLP, ML in Production"
+    },
+    {
+      "title": "Master Spring Boot 3 and Spring Framework 6",
+      "detail": "Udemy"
+    },
+    {
+      "title": "Spring Security with JWT and OAuth2",
+      "detail": "Udemy"
+    },
+    {
+      "title": "Mastering SPFx Development using React and Node.js",
+      "detail": "Udemy"
+    },
+    {
+      "title": "Complete Guide to Microsoft SharePoint Online",
+      "detail": "Udemy"
+    }
+  ],
+  "languages": [
+    {
+      "title": "Arabic",
+      "detail": "Native"
+    },
+    {
+      "title": "English",
+      "detail": "Professional working proficiency"
+    },
+    {
+      "title": "French",
+      "detail": "Professional working proficiency"
+    }
+  ],
+  "volunteering": [
+    {
+      "title": "Equipe Missionaire de Nazareth, Lebanon",
+      "detail": "2020: helped distribute food to more than 500 families after the Beirut port explosion"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+name: API build and test
+
+on:
+  push:
+    branches: [main]
+    paths: ['api/**', '.github/workflows/api.yml']
+  pull_request:
+    paths: ['api/**', '.github/workflows/api.yml']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: api/global.json
+      - run: dotnet restore Portfolio.slnx
+      - run: dotnet build Portfolio.slnx --no-restore -c Release
+      - run: dotnet test Portfolio.slnx --no-build -c Release
