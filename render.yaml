@@ -7,8 +7,8 @@ services:
     plan: free
     region: frankfurt # same region as the Neon database
     rootDir: api # only changes under api/ redeploy the API
-    dockerfilePath: api/Dockerfile
-    dockerContext: api
+    dockerfilePath: ./Dockerfile # relative to rootDir
+    dockerContext: . # relative to rootDir
     healthCheckPath: /health
     autoDeployTrigger: checksPass # deploy after the API tests pass on main
     envVars:
