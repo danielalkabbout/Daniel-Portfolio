@@ -1,11 +1,10 @@
 name: Web lint and build
 
+# Checks pull requests. On main, the Pipeline workflow calls this before deploying.
 on:
-  push:
-    branches: [main]
-    paths: ['web/**', '.github/workflows/web.yml']
   pull_request:
     paths: ['web/**', '.github/workflows/web.yml']
+  workflow_call:
 
 jobs:
   build:
