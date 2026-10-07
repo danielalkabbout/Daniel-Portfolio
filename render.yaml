@@ -31,7 +31,7 @@ services:
         sync: false
       - key: Admin__PasswordHash
         sync: false
-      # The Cloudflare Pages address, for example https://daniel-portfolio.pages.dev
+      # The Cloudflare Pages address, for example https://danielalkabbout.pages.dev
       - key: Cors__Origins__0
         sync: false
       # Optional: leave empty to turn the feature off

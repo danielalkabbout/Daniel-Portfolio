@@ -39,7 +39,7 @@ to reset a forgotten password or unlock the account.
 | Key | Value |
 | --- | --- |
 | `ConnectionStrings__Default` | the Neon string from step 1 |
-| `Cors__Origins__0` | `https://daniel-portfolio.pages.dev` (the Pages address from step 4; edit it later if Cloudflare gives a different one) |
+| `Cors__Origins__0` | `https://danielalkabbout.pages.dev` (the Pages address from step 4; edit it later if Cloudflare gives a different one) |
 | `Gemini__ApiKey` | optional, from aistudio.google.com > Get API key |
 | everything else | leave empty for now, filled in during Phase 7 (`Admin__*` stays empty: the account is in the database) |
 
@@ -77,7 +77,7 @@ The website never waits for it: it shows the content baked in at build time and 
 | `NODE_VERSION` | `22` |
 | `VITE_API_URL` | `https://danielalkabbout.onrender.com` |
 
-5. **Save and deploy**. The site goes live at `https://daniel-portfolio.pages.dev`.
+5. **Save and deploy**. The site goes live at `https://danielalkabbout.pages.dev`.
    If the address is different, update `Cors__Origins__0` on Render to match.
 
 ### 5. Publish button (deploy hook)
@@ -87,7 +87,7 @@ The website never waits for it: it shows the content baked in at build time and 
 Now **Publish changes** in the studio also rebuilds the site with the new content baked in.
 
 ### 6. Turnstile bot check (optional)
-1. Cloudflare > **Turnstile** > **Add widget**. Hostname: `daniel-portfolio.pages.dev`. Mode: Managed.
+1. Cloudflare > **Turnstile** > **Add widget**. Hostname: `danielalkabbout.pages.dev`. Mode: Managed.
 2. Site key: add to Pages as `VITE_TURNSTILE_SITE_KEY`, then **Retry deployment** on the latest build.
 3. Secret key: add to Render as `Turnstile__Secret`.
 
@@ -126,7 +126,7 @@ rebuilds the website, then checks production. Nothing deploys if a test fails.
 | Secret | `RENDER_DEPLOY_HOOK_URL` | the Render deploy hook from step 1 |
 | Secret | `PAGES_DEPLOY_HOOK_URL` | the Pages deploy hook from step 5 |
 | Variable | `API_URL` | `https://danielalkabbout.onrender.com` |
-| Variable | `SITE_URL` | `https://daniel-portfolio.pages.dev` |
+| Variable | `SITE_URL` | `https://danielalkabbout.pages.dev` |
 
 4. **Actions** tab > **Pipeline** > **Run workflow**, tick "Redeploy", and watch it go green.
 
