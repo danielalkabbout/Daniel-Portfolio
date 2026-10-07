@@ -13,11 +13,32 @@ jobs:
     defaults:
       run:
         working-directory: api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Enables the database tests (each run uses a fresh throwaway database)
+      TEST_DB: Host=localhost;Port=5432;Username=postgres;Password=postgres
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: api/global.json
       - run: dotnet restore Portfolio.slnx
       - run: dotnet build Portfolio.slnx --no-restore -c Release
-      - run: dotnet test Portfolio.slnx --no-build -c Release
+      - run: dotnet test Portfolio.slnx --no-build -c Release --logger trx --results-directory TestResults
+      - name: Test summary
+        if: always()
+        run: |
+          f=$(ls TestResults/*.trx | head -1)
+          counters=$(grep -o '<Counters [^>]*>' "$f")
+          total=$(echo "$counters" | sed -E 's/.* total="([0-9]+)".*/\1/')
+          passed=$(echo "$counters" | sed -E 's/.* passed="([0-9]+)".*/\1/')
+          failed=$(echo "$counters" | sed -E 's/.* failed="([0-9]+)".*/\1/')
+          skipped=$(grep -c 'outcome="NotExecuted"' "$f" || true)
+          echo "::notice title=Tests::$passed passed, $failed failed, $skipped skipped (of $total)"
