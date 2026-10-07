@@ -25,7 +25,7 @@ jobs:
       TEST_DB: Host=localhost;Port=5432;Username=postgres;Password=postgres
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: api/global.json
       - run: dotnet restore Portfolio.slnx
