@@ -1,6 +1,10 @@
 namespace Portfolio.Api.Options;
 
-/// <summary>Your admin login. PasswordHash comes from: dotnet run --project src/Portfolio.Api -- hash-password</summary>
+/// <summary>
+/// Optional first-run login. When the database has no admin account yet, the first sign-in with these
+/// values creates it in the database; after that the database is the only source of truth.
+/// PasswordHash comes from: dotnet run --project src/Portfolio.Api -- hash-password
+/// </summary>
 public sealed class AdminOptions
 {
     public const string Section = "Admin";

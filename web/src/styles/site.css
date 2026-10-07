@@ -8350,3 +8350,18 @@ h1[tabindex='-1']:focus-visible {
   display: inline-block;
   overflow: visible;
 }
+.adm-account {
+  max-width: 520px;
+}
+.adm-account input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 0.7rem 0.85rem;
+  width: 100%;
+}
+.adm-account code {
+  font-size: 0.82em;
+}

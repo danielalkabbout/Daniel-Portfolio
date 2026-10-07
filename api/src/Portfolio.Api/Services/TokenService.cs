@@ -4,12 +4,16 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Portfolio.Api.Options;
+using Portfolio.Domain.Entities;
 
 namespace Portfolio.Api.Services;
 
 public class TokenService(IOptions<JwtOptions> options)
 {
-    public (string Token, DateTime ExpiresAt) Create(string email)
+    public const string AccountIdClaim = "aid";
+    public const string StampClaim = "stamp";
+
+    public (string Token, DateTime ExpiresAt) Create(AdminAccount account)
     {
         var o = options.Value;
         var expires = DateTime.UtcNow.AddHours(o.ExpiryHours);
@@ -18,7 +22,12 @@ public class TokenService(IOptions<JwtOptions> options)
             Issuer = o.Issuer,
             Audience = o.Audience,
             Expires = expires,
-            Subject = new ClaimsIdentity([new Claim("sub", email), new Claim("role", "admin")]),
+            Subject = new ClaimsIdentity([
+                new Claim("sub", account.Email),
+                new Claim("role", "admin"),
+                new Claim(AccountIdClaim, account.Id.ToString()),
+                new Claim(StampClaim, account.SecurityStamp),
+            ]),
             SigningCredentials = new SigningCredentials(SigningKey(o.Key), SecurityAlgorithms.HmacSha256),
         };
         return (new JsonWebTokenHandler().CreateToken(descriptor), expires);

@@ -47,14 +47,16 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
   if (!res.ok) {
     let message = res.statusText || `Request failed (${res.status})`;
     let errors: Record<string, string[]> = {};
+    let explained = false;
     try {
       const p = (await res.json()) as { title?: string; detail?: string; errors?: Record<string, string[]> };
       message = p.detail || p.title || message;
+      explained = Boolean(p.detail);
       errors = p.errors ?? {};
     } catch {
       /* body was not JSON */
     }
-    if (res.status === 429) message = 'Too many tries. Wait a minute, then try again.';
+    if (res.status === 429 && !explained) message = 'Too many tries. Wait a minute, then try again.';
     throw new ApiError(res.status, message, errors);
   }
   if (res.status === 204) return undefined as T;

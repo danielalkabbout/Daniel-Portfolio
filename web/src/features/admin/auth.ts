@@ -60,3 +60,14 @@ export function logout() {
   store('session').remove(KEY);
   emit();
 }
+
+/** Changes the studio password. The API ends other sessions and returns a fresh token for this one. */
+export async function changePassword(token: string, currentPassword: string, newPassword: string) {
+  const res = await api<{ token: string; expiresAt: string }>('/api/auth/change-password', {
+    method: 'POST',
+    token,
+    body: { currentPassword, newPassword },
+  });
+  store('session').set(KEY, JSON.stringify(res));
+  emit();
+}

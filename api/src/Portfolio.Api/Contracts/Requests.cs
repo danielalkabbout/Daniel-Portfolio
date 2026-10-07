@@ -28,3 +28,5 @@ public sealed class EchoRequest
 public sealed record EchoTurn(string Role, string Content);
 
 public sealed record EchoResponse(string Answer);
+
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);

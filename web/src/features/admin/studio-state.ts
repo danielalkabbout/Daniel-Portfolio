@@ -24,7 +24,8 @@ export type Tab =
   | 'profile'
   | 'about'
   | 'data'
-  | 'activity';
+  | 'activity'
+  | 'account';
 
 export interface StudioApi {
   d: SiteContent;
