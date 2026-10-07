@@ -1,0 +1,21 @@
+# Weekly pull requests for dependency updates. Minor and patch updates are grouped into one PR per area.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /web
+    schedule: { interval: weekly, day: monday }
+    groups:
+      web-minor:
+        update-types: [minor, patch]
+  - package-ecosystem: nuget
+    directory: /api
+    schedule: { interval: weekly, day: monday }
+    groups:
+      api-minor:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+  - package-ecosystem: docker
+    directory: /api
+    schedule: { interval: monthly }

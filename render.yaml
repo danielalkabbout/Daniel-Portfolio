@@ -10,7 +10,8 @@ services:
     dockerfilePath: api/Dockerfile
     dockerContext: api
     healthCheckPath: /health
-    autoDeployTrigger: checksPass # deploy after the API tests pass on main
+    # GitHub Actions deploys through the deploy hook once the tests pass (.github/workflows/pipeline.yml)
+    autoDeployTrigger: off
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production

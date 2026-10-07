@@ -1,0 +1,171 @@
+name: Pipeline
+
+# Every push to main: test what changed, deploy the API, then the website, then check production.
+# Nothing deploys unless its tests pass. Deploy steps skip themselves until their secrets are set
+# (see docs/DEPLOY.md, "Continuous deployment").
+#
+# Repository secrets:   RENDER_DEPLOY_HOOK_URL, PAGES_DEPLOY_HOOK_URL
+# Repository variables: API_URL (https://...onrender.com), SITE_URL (https://...pages.dev)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_all:
+        description: Redeploy the API and the website even if nothing changed
+        type: boolean
+        default: false
+
+# One deployment at a time; a newer push waits instead of racing the current one.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api == 'true' || inputs.deploy_all == true }}
+      web: ${{ steps.filter.outputs.web == 'true' || inputs.deploy_all == true }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'api/**'
+              - 'render.yaml'
+              - '.github/workflows/api.yml'
+            web:
+              - 'web/**'
+              - '.github/workflows/web.yml'
+
+  api-ci:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/api.yml
+
+  web-ci:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    uses: ./.github/workflows/web.yml
+
+  deploy-api:
+    needs: [changes, api-ci]
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production-api
+      url: ${{ vars.API_URL }}
+    timeout-minutes: 20
+    env:
+      HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - name: Start the Render deploy
+        id: start
+        run: |
+          if [ -z "$HOOK" ] || [ -z "$API_URL" ]; then
+            echo "::notice title=API deploy skipped::Set the RENDER_DEPLOY_HOOK_URL secret and the API_URL variable to deploy automatically."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Deploy started for ${GITHUB_SHA::7}"
+      - name: Wait until the new version is live
+        if: steps.start.outputs.skip != 'true'
+        run: |
+          # Free instances build in a few minutes; /api/info reports the commit that is running.
+          for i in $(seq 1 90); do
+            live=$(curl -fsS --max-time 30 "$API_URL/api/info" 2>/dev/null | jq -r '.commit // empty' || true)
+            if [ "$live" = "$GITHUB_SHA" ]; then
+              echo "::notice title=API deployed::${GITHUB_SHA::7} is live on $API_URL"
+              exit 0
+            fi
+            echo "Running: ${live:-not reachable yet}. Waiting..."
+            sleep 10
+          done
+          echo "::error title=API deploy::The new version did not go live within 15 minutes. Check the deploy logs on Render."
+          exit 1
+
+  deploy-web:
+    # The site is rebuilt after an API deploy too, so its built-in content snapshot is fresh.
+    needs: [changes, api-ci, web-ci, deploy-api]
+    if: >-
+      always() && !cancelled() &&
+      (needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true') &&
+      needs.api-ci.result != 'failure' && needs.web-ci.result != 'failure' &&
+      needs.deploy-api.result != 'failure'
+    runs-on: ubuntu-latest
+    environment:
+      name: production-web
+      url: ${{ vars.SITE_URL }}
+    timeout-minutes: 15
+    env:
+      HOOK: ${{ secrets.PAGES_DEPLOY_HOOK_URL }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Start the Cloudflare Pages build
+        id: start
+        run: |
+          if [ -z "$HOOK" ] || [ -z "$SITE_URL" ]; then
+            echo "::notice title=Website deploy skipped::Set the PAGES_DEPLOY_HOOK_URL secret and the SITE_URL variable to deploy automatically."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+      - name: Wait until the new build is live
+        if: steps.start.outputs.skip != 'true'
+        run: |
+          # Each build writes /version.json with the commit it was built from.
+          for i in $(seq 1 60); do
+            live=$(curl -fsS --max-time 20 "$SITE_URL/version.json?t=$(date +%s)" 2>/dev/null | jq -r '.commit // empty' || true)
+            if [ "$live" = "$GITHUB_SHA" ]; then
+              echo "::notice title=Website deployed::${GITHUB_SHA::7} is live on $SITE_URL"
+              exit 0
+            fi
+            echo "Live: ${live:-not reachable yet}. Waiting..."
+            sleep 10
+          done
+          echo "::error title=Website deploy::The new build did not go live within 10 minutes. Check the deployment on Cloudflare Pages."
+          exit 1
+
+  smoke:
+    name: Production check
+    needs: [deploy-api, deploy-web]
+    if: always() && !cancelled() && (needs.deploy-api.result == 'success' || needs.deploy-web.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      API_URL: ${{ vars.API_URL }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Check the live site and API
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$SITE_URL" ]; then
+            echo "::notice title=Production check skipped::Set the API_URL and SITE_URL variables."
+            exit 0
+          fi
+          set -e
+          echo "API health"
+          curl -fsS --max-time 90 --retry 2 "$API_URL/health"; echo
+          echo "API content"
+          projects=$(curl -fsS --max-time 30 "$API_URL/api/content" | jq '.projects | length')
+          test "$projects" -gt 0
+          echo "API allows the website (CORS)"
+          allowed=$(curl -fsS -o /dev/null -D - -X OPTIONS "$API_URL/api/content" \
+            -H "Origin: $SITE_URL" -H "Access-Control-Request-Method: GET" | tr -d '\r' \
+            | awk 'tolower($1)=="access-control-allow-origin:"{print $2}')
+          if [ "$allowed" != "$SITE_URL" ]; then
+            echo "::error title=CORS::The API does not allow $SITE_URL. Set Cors__Origins__0 on Render to exactly $SITE_URL"
+            exit 1
+          fi
+          echo "Website pages"
+          for path in / /about /experience /projects /services /admin; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL$path")
+            echo "$path -> $code"
+            test "$code" = "200"
+          done
+          echo "::notice title=Production check::API and website are up ($projects projects, CORS ok, all pages 200)"

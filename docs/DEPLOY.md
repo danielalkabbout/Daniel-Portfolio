@@ -109,9 +109,29 @@ but makes it heavier.
 1. resend.com > **API Keys** > create one.
 2. Add to Render: `Email__ResendApiKey` = the key, `Email__To` = the address you signed up to Resend with.
 
-### 9. Keep the API awake (optional)
-GitHub repo > **Settings** > **Secrets and variables** > **Actions** > **Variables** > new variable
-`API_URL` = `https://daniel-portfolio-api.onrender.com`. The **Keep the API awake** workflow then
+### 9. Continuous deployment
+From now on, merging to `main` runs the **Pipeline** workflow: it tests what changed, deploys the API,
+rebuilds the website, then checks production. Nothing deploys if a test fails.
+
+1. **Render**: service > **Settings** > **Deploy Hook** > copy the URL.
+2. **Cloudflare Pages**: project > **Settings** > **Builds** > **Branch control** > turn off
+   **Automatic production branch deployments**, so only the pipeline (and the studio's Publish
+   button) can update the live site. Preview deployments for pull requests can stay on.
+3. **GitHub** repo > **Settings** > **Secrets and variables** > **Actions**:
+
+| Type | Name | Value |
+| --- | --- | --- |
+| Secret | `RENDER_DEPLOY_HOOK_URL` | the Render deploy hook from step 1 |
+| Secret | `PAGES_DEPLOY_HOOK_URL` | the Pages deploy hook from step 5 |
+| Variable | `API_URL` | `https://daniel-portfolio-api.onrender.com` |
+| Variable | `SITE_URL` | `https://daniel-portfolio.pages.dev` |
+
+4. **Actions** tab > **Pipeline** > **Run workflow**, tick "Redeploy", and watch it go green.
+
+Until these are set, the pipeline still runs the tests and simply skips the deploy steps.
+
+### 10. Keep the API awake (optional)
+Uses the same `API_URL` variable from step 9. The **Keep the API awake** workflow
 pings it every 14 minutes from 06:00 to midnight Lebanon time.
 
 ---

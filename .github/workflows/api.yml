@@ -1,11 +1,10 @@
 name: API build and test
 
+# Checks pull requests. On main, the Pipeline workflow calls this before deploying.
 on:
-  push:
-    branches: [main]
-    paths: ['api/**', '.github/workflows/api.yml']
   pull_request:
     paths: ['api/**', '.github/workflows/api.yml']
+  workflow_call:
 
 jobs:
   build:
