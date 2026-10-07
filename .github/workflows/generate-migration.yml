@@ -13,8 +13,8 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: api/global.json
       - run: dotnet tool install --global dotnet-ef --version "10.*"
@@ -22,7 +22,9 @@ jobs:
         working-directory: api
         run: |
           if [ -d src/Portfolio.Infrastructure/Persistence/Migrations ]; then echo "Already exists"; exit 0; fi
-          dotnet ef migrations add InitialCreate -p src/Portfolio.Infrastructure -s src/Portfolio.Api -o Persistence/Migrations
+          dotnet restore Portfolio.slnx
+          dotnet build src/Portfolio.Api --no-restore
+          dotnet ef migrations add InitialCreate -p src/Portfolio.Infrastructure -s src/Portfolio.Api -o Persistence/Migrations --no-build
       - name: Commit migration
         run: |
           git config user.name "Daniel"

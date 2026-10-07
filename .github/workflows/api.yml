@@ -25,8 +25,8 @@ jobs:
       # Enables the database tests (each run uses a fresh throwaway database)
       TEST_DB: Host=localhost;Port=5432;Username=postgres;Password=postgres
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: api/global.json
       - run: dotnet restore Portfolio.slnx
