@@ -1,6 +1,30 @@
-@Portfolio.Api_HostAddress = http://localhost:5279
+# Quick manual tests. In VS Code install the "REST Client" extension, or use Visual Studio.
+@api = http://localhost:5080
 
-GET {{Portfolio.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+GET {{api}}/health
 
 ###
+GET {{api}}/api/content
+
+###
+# @name login
+POST {{api}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "you@example.com", "password": "your admin password" }
+
+###
+GET {{api}}/api/admin/requests
+Authorization: Bearer {{login.response.body.token}}
+
+###
+POST {{api}}/api/requests
+Content-Type: application/json
+
+{ "name": "Test", "email": "test@example.com", "services": ["AI agent"], "message": "Hello" }
+
+###
+POST {{api}}/api/echo
+Content-Type: application/json
+
+{ "question": "What does Daniel build?" }
