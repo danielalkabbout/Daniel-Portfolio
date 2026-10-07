@@ -42,3 +42,39 @@ jobs:
           failed=$(echo "$counters" | sed -E 's/.* failed="([0-9]+)".*/\1/')
           skipped=$(grep -c 'outcome="NotExecuted"' "$f" || true)
           echo "::notice title=Tests::$passed passed, $failed failed, $skipped skipped (of $total)"
+
+  # Builds the same Docker image Render runs and starts it the way Render does:
+  # migrations and seeding on startup, PORT from the environment.
+  docker:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: portfolio
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t portfolio-api api
+      - name: Start the container
+        run: |
+          docker run -d --name api --network host \
+            -e ASPNETCORE_ENVIRONMENT=Production -e PORT=8080 -e Database__MigrateOnStartup=true \
+            -e "ConnectionStrings__Default=Host=localhost;Port=5432;Database=portfolio;Username=postgres;Password=postgres" \
+            -e "Jwt__Key=$(openssl rand -base64 48)" \
+            portfolio-api
+      - name: Health check and content
+        run: |
+          for i in $(seq 1 40); do curl -fsS localhost:8080/health && break; sleep 2; done
+          echo
+          curl -fsS localhost:8080/health
+          echo
+          projects=$(curl -fsS localhost:8080/api/content | jq '.projects | length')
+          echo "::notice title=Container::Started on port 8080, migrated and seeded with $projects projects"
+          test "$projects" -gt 0
+      - name: Container logs
+        if: always()
+        run: docker logs api

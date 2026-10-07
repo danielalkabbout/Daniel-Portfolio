@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Portfolio.Api.Controllers;
 using Portfolio.Api.Options;
@@ -13,10 +14,11 @@ using Portfolio.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 // One-off commands, run with: dotnet run --project src/Portfolio.Api -- <command>
+//   migrate        apply database migrations, then seed if the database is empty
 //   seed           import SeedData/content-seed.json into an empty database
 //   hash-password  turn your admin password into the hash for Admin:PasswordHash
 //   new-jwt-key    print a random key for Jwt:Key
-var command = args.FirstOrDefault(a => a is "seed" or "hash-password" or "new-jwt-key");
+var command = args.FirstOrDefault(a => a is "migrate" or "seed" or "hash-password" or "new-jwt-key");
 
 if (command == "hash-password")
 {
@@ -36,6 +38,10 @@ if (command == "new-jwt-key")
 }
 
 var builder = WebApplication.CreateBuilder(args.Where(a => a != command).ToArray());
+
+// Hosts like Render tell the app which port to listen on through PORT.
+if (Environment.GetEnvironmentVariable("PORT") is { Length: > 0 } port)
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Default"));
 
@@ -134,13 +140,25 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+var seedPath = Path.Combine(AppContext.BaseDirectory, "SeedData", "content-seed.json");
+
 if (command == "seed")
 {
     using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<ContentSeeder>();
-    var path = Path.Combine(AppContext.BaseDirectory, "SeedData", "content-seed.json");
-    Console.WriteLine(await seeder.SeedAsync(path));
+    Console.WriteLine(await scope.ServiceProvider.GetRequiredService<ContentSeeder>().SeedAsync(seedPath));
     return;
+}
+
+// "migrate" command, or Database:MigrateOnStartup=true on the server: bring the schema up to date,
+// then add the starting content if the database is empty. Safe to run on every start.
+if (command == "migrate" || app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var log = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
+    log.LogInformation("Database is up to date. {Seed}",
+        await scope.ServiceProvider.GetRequiredService<ContentSeeder>().SeedAsync(seedPath));
+    if (command == "migrate") return;
 }
 
 app.UseExceptionHandler();

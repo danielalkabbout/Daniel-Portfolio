@@ -7,5 +7,5 @@ namespace Portfolio.Api.Controllers;
 public class InfoController : ControllerBase
 {
     [HttpGet]
-    public IActionResult Get() => Ok(new { name = "daniel-portfolio-api", version = "0.5.0" });
+    public IActionResult Get() => Ok(new { name = "daniel-portfolio-api", version = "0.6.0" });
 }
