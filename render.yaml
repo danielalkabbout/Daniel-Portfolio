@@ -1,0 +1,54 @@
+# Render Blueprint for the portfolio API (free plan).
+# Render dashboard > New > Blueprint > pick this repo. It asks once for every value marked sync: false.
+services:
+  - type: web
+    name: daniel-portfolio-api
+    runtime: docker
+    plan: free
+    region: frankfurt # same region as the Neon database
+    rootDir: api # only changes under api/ redeploy the API
+    dockerfilePath: api/Dockerfile
+    dockerContext: api
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass # deploy after the API tests pass on main
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: PORT
+        value: "8080"
+      # Applies migrations and adds the starting content on first boot. Safe on every start.
+      - key: Database__MigrateOnStartup
+        value: "true"
+      - key: Jwt__Key
+        generateValue: true
+      # Neon production branch, .NET format, pooling off
+      - key: ConnectionStrings__Default
+        sync: false
+      - key: Admin__Email
+        sync: false
+      - key: Admin__PasswordHash
+        sync: false
+      # The Cloudflare Pages address, for example https://daniel-portfolio.pages.dev
+      - key: Cors__Origins__0
+        sync: false
+      # Optional: leave empty to turn the feature off
+      - key: Gemini__ApiKey
+        sync: false
+      - key: Turnstile__Secret
+        sync: false
+      - key: Email__ResendApiKey
+        sync: false
+      - key: Email__To
+        sync: false
+      - key: Pages__DeployHookUrl
+        sync: false
+      - key: R2__AccountId
+        sync: false
+      - key: R2__AccessKeyId
+        sync: false
+      - key: R2__SecretAccessKey
+        sync: false
+      - key: R2__Bucket
+        sync: false
+      - key: R2__PublicBaseUrl
+        sync: false

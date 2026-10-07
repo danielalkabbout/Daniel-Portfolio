@@ -121,6 +121,16 @@ public class ContentService(AppDbContext db)
         var before = await GetAsync(ct);
         var changed = ChangedSections(before, content);
 
+        // The database connection retries on failure, so the whole transaction runs inside
+        // the execution strategy and starts clean on each attempt.
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(() => WriteAsync(content, ct));
+        return changed;
+    }
+
+    private async Task WriteAsync(SiteContentDto content, CancellationToken ct)
+    {
+        db.ChangeTracker.Clear();
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
         await db.Highlights.ExecuteDeleteAsync(ct);
@@ -224,8 +234,6 @@ public class ContentService(AppDbContext db)
 
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-
-        return changed;
     }
 
     private void AddAbout(AboutItemType type, List<TextItemDto>? items)

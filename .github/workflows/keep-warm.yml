@@ -1,0 +1,17 @@
+name: Keep the API awake
+
+# Render's free plan sleeps after 15 minutes without traffic, and waking takes about a minute.
+# This pings the health check every 14 minutes during the day in Lebanon (06:00 to 24:00).
+# It only runs once the API_URL repository variable is set (Settings > Secrets and variables > Actions > Variables).
+on:
+  schedule:
+    - cron: '*/14 3-20 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    if: vars.API_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - run: curl --silent --show-error --fail --max-time 90 --retry 2 "${{ vars.API_URL }}/health"
