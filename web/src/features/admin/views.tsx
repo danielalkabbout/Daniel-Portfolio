@@ -1221,4 +1221,5 @@ export const TABS: [Parameters<ReturnType<typeof useStudio>['show']>[0], string,
   ['about', 'About details', 'about'],
   ['data', 'Backup and restore', 'data'],
   ['activity', 'Activity', 'activity'],
+  ['account', 'Account', 'lock'],
 ];

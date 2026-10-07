@@ -26,7 +26,7 @@ function Login() {
         err instanceof ApiError && err.status === 401
           ? 'Wrong email or password.'
           : err instanceof ApiError && err.status === 503
-            ? 'Sign-in is not set up on the server yet.'
+            ? 'No studio account yet. Create one with: dotnet run --project src/Portfolio.Api -- create-admin'
             : (err as Error).message,
       );
       setPassword('');
@@ -81,7 +81,7 @@ function Login() {
 
 function Loaded({ token }: { token: string }) {
   const { data, error, isLoading, refetch } = useQuery({
-    queryKey: ['admin', 'content', token],
+    queryKey: ['admin', 'content'],
     queryFn: async (): Promise<SiteContent> => {
       const raw = await api<unknown>('/api/admin/content', { token, timeoutMs: 90000 });
       const parsed = siteContentSchema.safeParse(raw);

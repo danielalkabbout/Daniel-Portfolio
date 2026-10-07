@@ -37,6 +37,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         Environment.SetEnvironmentVariable("Admin__Email", AdminEmail);
         Environment.SetEnvironmentVariable("Admin__PasswordHash", AuthController.HashPassword(AdminPassword));
         Environment.SetEnvironmentVariable("Jwt__Key", new string('k', 48));
+        // The tests sign in more often than a person would.
+        Environment.SetEnvironmentVariable("RateLimits__Strict", "50");
     }
 
     private string? adminToken;
@@ -62,6 +64,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await db.Database.MigrateAsync();
         var seeder = scope.ServiceProvider.GetRequiredService<ContentSeeder>();
         await seeder.SeedAsync(TestPaths.SeedFile());
+        // The first sign-in copies the configured admin into the database, before other tests add accounts.
+        await AdminTokenAsync();
     }
 
     async Task IAsyncLifetime.DisposeAsync()

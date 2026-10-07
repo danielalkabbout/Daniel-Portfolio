@@ -8,6 +8,7 @@ import { siteContentSchema, type SiteContent } from '../../types/content';
 import { logout } from './auth';
 import { Drawer } from './Drawer';
 import { ActivityView, RequestsView, useRequests } from './RequestsView';
+import { AccountView } from './AccountView';
 import { Ic, useUi } from './ui';
 import { changedSections, clone, LABEL, StudioCtx, type DrawerSpec, type StudioApi, type Tab } from './studio-state';
 import {
@@ -236,6 +237,7 @@ export function Studio({ initial, token }: { initial: SiteContent; token: string
     about: AboutView,
     data: DataView,
     activity: ActivityView,
+    account: AccountView,
   }[tab];
 
   return (
