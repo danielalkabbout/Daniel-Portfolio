@@ -1,9 +1,15 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Portfolio.Infrastructure;
+using Portfolio.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
-var builder = WebApplication.CreateBuilder(args);
+// "dotnet run -- seed" imports the content JSON into the database, then exits.
+var seedMode = args.Contains("seed");
 
+var builder = WebApplication.CreateBuilder(args.Where(a => a != "seed").ToArray());
+
+builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Default"));
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
@@ -35,6 +41,15 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+
+if (seedMode)
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<ContentSeeder>();
+    var path = Path.Combine(AppContext.BaseDirectory, "SeedData", "content-seed.json");
+    Console.WriteLine(await seeder.SeedAsync(path));
+    return;
+}
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
