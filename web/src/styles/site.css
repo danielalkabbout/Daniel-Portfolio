@@ -9553,3 +9553,213 @@ body.menu-open .to-top {
     display: none;
   }
 }
+
+/* ---------- phones and tablets ---------- */
+/* Text that depends on whether the visitor has a mouse or a finger. */
+.on-touch {
+  display: none;
+}
+@media (hover: none) {
+  .on-mouse {
+    display: none;
+  }
+  .on-touch {
+    display: inline;
+  }
+}
+
+/* CV page: grid children may shrink, and the sheet reflows instead of running off the screen. */
+.cv-layout > * {
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  .cv-hero {
+    padding: 2.5rem 0 1.75rem;
+  }
+  .cv-layout {
+    padding-top: 1.5rem;
+  }
+  .cv-rail {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .cv-sheet {
+    padding: 22px 16px 26px;
+    font-size: 9.8pt;
+    border-radius: 10px;
+  }
+  .cv-head h2 {
+    font-size: 15pt;
+  }
+  .cv-headline {
+    font-size: 10.5pt;
+  }
+  .cv-contact,
+  .cv-contact a {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .cv-sep {
+    margin: 0 0.35em;
+  }
+  .cv-sheet ul {
+    padding-left: 14pt;
+  }
+  .cv-sheet li::before {
+    left: -10pt;
+  }
+  .cv-entry-head,
+  .cv-para,
+  .cv-skill,
+  .cv-sheet li {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Experience chart: wide enough on a phone that every bar is readable; the chart scrolls sideways. */
+@media (max-width: 760px) {
+  .gantt {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .g-axis,
+  .g-rows {
+    min-width: 760px;
+  }
+  .g-row p {
+    font-size: 0.84rem;
+  }
+  .xp-map-sec .head p {
+    font-size: 0.95rem;
+  }
+}
+
+/* Footer links: comfortable to tap on a phone. */
+@media (max-width: 700px) {
+  .ft-grid nav,
+  .ft-grid > div:not(.ft-about) {
+    gap: 0.1rem;
+  }
+  .ft-grid a {
+    padding: 0.55rem 0;
+  }
+}
+
+/* Studio on phones */
+@media (max-width: 980px) {
+  .adm-side {
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .adm-side .adm-side-foot {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0 0.25rem 0 0.5rem;
+    border-left: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .adm-side .adm-side-foot .adm-link {
+    padding: 0.6rem 0;
+  }
+}
+@media (max-width: 620px) {
+  .adm-row {
+    flex-wrap: wrap;
+    row-gap: 0.4rem;
+  }
+  .adm-row .adm-rtxt {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .adm-row .adm-ract {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--line);
+  }
+  .adm-row .adm-ibtn {
+    width: 40px;
+    height: 40px;
+  }
+  .adm-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: calc(100vw - 1.25rem);
+    max-width: none;
+    padding: 0.55rem;
+    gap: 0.45rem;
+    border-radius: 16px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  }
+  .adm-bar > span:nth-child(2) {
+    flex: 1 1 calc(100% - 24px);
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .adm-bar .adm-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.55rem 0.5rem;
+    font-size: 0.86rem;
+  }
+  .adm-head h2 {
+    font-size: 1.6rem;
+  }
+  .adm-cvsecs li {
+    flex-wrap: wrap;
+  }
+  .adm-cvsec-main {
+    flex: 1 1 0;
+  }
+  .adm-cvsec-act .adm-ibtn {
+    width: 38px;
+    height: 38px;
+  }
+  .adm-cvpv {
+    padding: 0.6rem;
+  }
+  .adm-pages-seg {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+  }
+  .adm-pages-seg button {
+    flex: none;
+  }
+}
+/* Request form: let both columns shrink on the smallest phones. */
+.wz-grid > * {
+  min-width: 0;
+}
+.wz-side .direct a {
+  overflow-wrap: anywhere;
+}
+/* Slide-in animations start off to the side; never let them widen the page. ("clip", unlike "hidden",
+   doesn't create a scroll container, so sticky elements keep working.) */
+main {
+  overflow-x: clip;
+}
+/* Company names stay pinned on the left while the chart scrolls sideways on a phone. */
+@media (max-width: 760px) {
+  .g-row p {
+    position: sticky;
+    left: -1.1rem;
+    z-index: 3;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    padding-left: 1.1rem;
+    margin-left: -1.1rem;
+    background: linear-gradient(90deg, var(--surface) 85%, transparent);
+  }
+}
