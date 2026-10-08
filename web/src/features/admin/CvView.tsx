@@ -127,6 +127,9 @@ export function CvView() {
   const ctx = { update, toast };
   const cv = d.cv;
   const [focus, setFocus] = useState<CvSectionKey | null>(null);
+  // The preview marks a section only while you point at it or edit it.
+  const leave = (e: React.FocusEvent<HTMLElement>) =>
+    !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocus(null);
   const [drag, setDrag] = useState<number | null>(null);
   const n = counts(d);
 
@@ -204,7 +207,7 @@ export function CvView() {
             </label>
           </section>
 
-          <section className="adm-card" onFocus={() => setFocus('summary')}>
+          <section className="adm-card" onFocus={() => setFocus('summary')} onBlur={leave}>
             <div className="adm-cv-h">
               <h3>Summary</h3>
               <button
@@ -249,7 +252,11 @@ export function CvView() {
             <p className="adm-muted">
               Drag to reorder, rename a section, or switch it off. Point at one to find it in the preview.
             </p>
-            <ol className="adm-cvsecs">
+            <ol
+              className="adm-cvsecs"
+              onMouseLeave={(e) => !e.currentTarget.contains(document.activeElement) && setFocus(null)}
+              onBlur={leave}
+            >
               {cv.sections.map((s, i) => (
                 <li
                   key={s.key}
