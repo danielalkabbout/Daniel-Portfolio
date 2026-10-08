@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { reduceMotion } from '../lib/env';
-import { useAdminToken } from '../features/admin/auth';
+import { useAdminSession } from '../features/admin/auth';
 
 const NAV = [
   { to: '/', label: 'Home', end: true },
@@ -97,7 +97,7 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
-  const token = useAdminToken();
+  const signedIn = Boolean(useAdminSession());
   const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform);
 
   // Close the mobile menu after navigating.
@@ -123,7 +123,7 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
               {n.label}
             </NavLink>
           ))}
-          {token && (
+          {signedIn && (
             <NavLink to="/admin" className="nav-admin">
               <LockIcon />
               <span>Studio</span>
@@ -169,7 +169,7 @@ export function Header({ onOpenPalette }: { onOpenPalette: () => void }) {
             {n.label}
           </NavLink>
         ))}
-        {token && <NavLink to="/admin">Studio</NavLink>}
+        {signedIn && <NavLink to="/admin">Studio</NavLink>}
       </div>
     </header>
   );

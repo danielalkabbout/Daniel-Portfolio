@@ -1,4 +1,4 @@
-name: Web lint and build
+name: Web lint, test and build
 
 # Checks pull requests. On main, the Pipeline workflow calls this before deploying.
 on:
@@ -21,4 +21,5 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       - run: npm run build

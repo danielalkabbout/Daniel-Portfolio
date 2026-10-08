@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import clsx from 'clsx';
 import avatar from '../../assets/echo-avatar.jpg';
-import { api, API_URL } from '../../api/client';
+import { api, API_ENABLED } from '../../api/client';
 import { useSite } from '../../api/content';
 import { escapeHtml, finePointer, reduceMotion } from '../../lib/env';
 import { EchoEngine, GREETING, START_CHIPS, type EchoAnswer } from './engine';
@@ -84,7 +84,7 @@ export function EchoChat() {
   }
 
   async function askAi(question: string): Promise<string | null> {
-    if (!API_URL) return null;
+    if (!API_ENABLED) return null;
     try {
       const res = await api<{ answer: string }>('/api/echo', {
         method: 'POST',

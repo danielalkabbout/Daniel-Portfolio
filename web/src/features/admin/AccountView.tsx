@@ -3,13 +3,11 @@ import { ApiError } from '../../api/client';
 import { changePassword, logout } from './auth';
 import { Head } from './views';
 import { useUi } from './ui';
-import { useStudio } from './studio-state';
 
 const MIN = 12;
 
 /** Change the studio password. It is stored, hashed, in the database. */
 export function AccountView() {
-  const { token } = useStudio();
   const { toast } = useUi();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -24,7 +22,7 @@ export function AccountView() {
     if (next !== repeat) return setError('The two new passwords don’t match.');
     setBusy(true);
     try {
-      await changePassword(token, current, next);
+      await changePassword(current, next);
       setCurrent('');
       setNext('');
       setRepeat('');

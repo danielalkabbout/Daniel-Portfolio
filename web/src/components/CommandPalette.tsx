@@ -41,6 +41,7 @@ export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (o: 
       { t: 'Experience', s: 'Page', run: () => navigate('/experience') },
       { t: 'Projects', s: 'Page', run: () => navigate('/projects') },
       { t: 'Services', s: 'Page', run: () => navigate('/services') },
+      { t: 'Download my CV', s: 'Page', run: () => navigate('/cv') },
       { t: 'Request a service', s: 'Form', run: () => scrollToId(navigate, '/services', 'request') },
       { t: 'Search my skills', s: 'About', run: () => scrollToId(navigate, '/about', 'skills', 'skillQ') },
       {

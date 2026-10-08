@@ -34,6 +34,10 @@ services:
       # The Cloudflare Pages address, for example https://danielalkabbout.pages.dev
       - key: Cors__Origins__0
         sync: false
+      # Same value as EDGE_KEY on Cloudflare Pages. Set it there first: once set here, only the
+      # website's /api proxy can sign in, edit content or send requests.
+      - key: Edge__Key
+        sync: false
       # Optional: leave empty to turn the feature off
       - key: Gemini__ApiKey
         sync: false

@@ -12,6 +12,16 @@ public sealed class AdminOptions
     public string PasswordHash { get; set; } = "";
 }
 
+/// <summary>
+/// Shared secret between the website's /api proxy (Cloudflare Pages Function, EDGE_KEY) and the API.
+/// When set, only the proxy can sign in, edit content or send requests; direct calls can only read public content.
+/// </summary>
+public sealed class EdgeOptions
+{
+    public const string Section = "Edge";
+    public string Key { get; set; } = "";
+}
+
 public sealed class JwtOptions
 {
     public const string Section = "Jwt";

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useSite } from '../api/content';
-import { copyText, smooth } from '../lib/env';
+import { copyText } from '../lib/env';
 import { ChatIcon, GitHubIcon, LinkedInIcon, MailIcon } from '../lib/icons';
 
 function beirutTime() {
@@ -17,7 +17,6 @@ function beirutTime() {
 export function Footer() {
   const { profile: p } = useSite();
   const ref = useRef<HTMLElement>(null);
-  const topRef = useRef<HTMLButtonElement>(null);
   const [time, setTime] = useState(beirutTime);
   const [copied, setCopied] = useState(false);
   const [year] = useState(() => new Date().getFullYear());
@@ -29,14 +28,7 @@ export function Footer() {
 
   useEffect(() => {
     const ft = ref.current;
-    const top = topRef.current;
-    if (!ft || !top) return;
-    const prog = () => {
-      const h = document.documentElement.scrollHeight - innerHeight;
-      top.style.setProperty('--sp2', h > 0 ? (scrollY / h).toFixed(3) : '0');
-    };
-    addEventListener('scroll', prog, { passive: true });
-    prog();
+    if (!ft) return;
     const io = new IntersectionObserver(
       (es) =>
         es.forEach((e) => {
@@ -46,10 +38,7 @@ export function Footer() {
       { threshold: 0.25 },
     );
     io.observe(ft);
-    return () => {
-      removeEventListener('scroll', prog);
-      io.disconnect();
-    };
+    return () => io.disconnect();
   }, []);
 
   const copy = async () => {
@@ -126,6 +115,7 @@ export function Footer() {
             <Link to="/experience">Experience</Link>
             <Link to="/projects">Projects</Link>
             <Link to="/services">Services</Link>
+            <Link to="/cv">CV</Link>
           </nav>
           <div>
             <h3>Services</h3>
@@ -163,30 +153,6 @@ export function Footer() {
 
       <div className="wrap ft-bottom">
         <span>© {year} Daniel Al Kabbout. Designed and built with care in Lebanon.</span>
-        <button
-          className="ft-top"
-          type="button"
-          aria-label="Back to top"
-          ref={topRef}
-          onClick={() => window.scrollTo({ top: 0, behavior: smooth() })}
-        >
-          <svg className="ring" viewBox="0 0 44 44" aria-hidden="true">
-            <circle cx="22" cy="22" r="20" pathLength={100} />
-            <circle className="pr" cx="22" cy="22" r="20" pathLength={100} />
-          </svg>
-          <svg
-            className="ar"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 19V5M6 11l6-6 6 6" />
-          </svg>
-        </button>
       </div>
     </footer>
   );

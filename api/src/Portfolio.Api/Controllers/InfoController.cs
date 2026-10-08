@@ -10,5 +10,5 @@ public class InfoController : ControllerBase
     private static readonly string Commit = Environment.GetEnvironmentVariable("RENDER_GIT_COMMIT") is { Length: > 0 } c ? c : "local";
 
     [HttpGet]
-    public IActionResult Get() => Ok(new { name = "daniel-portfolio-api", version = "0.7.0", commit = Commit });
+    public IActionResult Get() => Ok(new { name = "daniel-portfolio-api", version = "0.8.0", commit = Commit });
 }

@@ -1,12 +1,14 @@
+import type React from 'react';
 import { createBrowserRouter } from 'react-router';
 import { Layout } from './Layout';
 import { ErrorPage } from './ErrorPage';
 import HomePage from '../pages/HomePage';
-import AboutPage from '../pages/AboutPage';
-import ExperiencePage from '../pages/ExperiencePage';
-import ProjectsPage from '../pages/ProjectsPage';
-import ServicesPage from '../pages/ServicesPage';
 import NotFoundPage from '../pages/NotFoundPage';
+
+// The home page ships in the first download; every other page loads when it is first visited.
+const page = (load: () => Promise<{ default: React.ComponentType }>) => async () => ({
+  Component: (await load()).default,
+});
 
 export const router = createBrowserRouter([
   {
@@ -14,13 +16,14 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'about', element: <AboutPage /> },
-      { path: 'experience', element: <ExperiencePage /> },
-      { path: 'projects', element: <ProjectsPage /> },
-      { path: 'projects/:projectId', element: <ProjectsPage /> },
-      { path: 'services', element: <ServicesPage /> },
-      // The studio is only for the owner, so its code loads on demand.
-      { path: 'admin/*', lazy: async () => ({ Component: (await import('../pages/AdminPage')).default }) },
+      { path: 'about', lazy: page(() => import('../pages/AboutPage')) },
+      { path: 'experience', lazy: page(() => import('../pages/ExperiencePage')) },
+      { path: 'projects', lazy: page(() => import('../pages/ProjectsPage')) },
+      { path: 'projects/:projectId', lazy: page(() => import('../pages/ProjectsPage')) },
+      { path: 'services', lazy: page(() => import('../pages/ServicesPage')) },
+      { path: 'cv', lazy: page(() => import('../pages/CvPage')) },
+      // The studio is only for the owner.
+      { path: 'admin/*', lazy: page(() => import('../pages/AdminPage')) },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

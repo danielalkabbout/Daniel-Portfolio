@@ -53,6 +53,7 @@ builder.Services.Configure<TurnstileOptions>(builder.Configuration.GetSection(Tu
 builder.Services.Configure<R2Options>(builder.Configuration.GetSection(R2Options.Section));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.Section));
 builder.Services.Configure<PublishOptions>(builder.Configuration.GetSection(PublishOptions.Section));
+builder.Services.Configure<EdgeOptions>(builder.Configuration.GetSection(EdgeOptions.Section));
 
 var jwt = builder.Configuration.GetSection(JwtOptions.Section).Get<JwtOptions>() ?? new JwtOptions();
 if (string.IsNullOrWhiteSpace(jwt.Key))
@@ -72,7 +73,8 @@ builder.Services.Configure<JwtOptions>(o =>
     o.ExpiryHours = jwt.ExpiryHours;
 });
 
-// Admin authentication: a bearer token from POST /api/auth/login
+// Admin authentication: POST /api/auth/login puts a signed token in an HttpOnly cookie.
+// An Authorization: Bearer header is also accepted, for scripts and tests.
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
@@ -90,6 +92,12 @@ builder.Services
         // A token stops working once the password changes (the account's security stamp changes).
         o.Events = new JwtBearerEvents
         {
+            OnMessageReceived = ctx =>
+            {
+                if (string.IsNullOrEmpty(ctx.Request.Headers.Authorization))
+                    ctx.Token = SessionCookie.Read(ctx.Request);
+                return Task.CompletedTask;
+            },
             OnTokenValidated = async ctx =>
             {
                 var principal = ctx.Principal!;
@@ -132,8 +140,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy => policy
         .WithOrigins(allowedOrigins)
-        .AllowAnyHeader()
-        .AllowAnyMethod());
+        .WithHeaders("Content-Type", "Accept", ApiSecurity.CsrfHeader)
+        .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE"));
 });
 
 // Per-IP limits: 100/minute overall, 5/minute for login and the request form, 15/minute for Echo
@@ -199,6 +207,8 @@ if (command == "migrate" || app.Configuration.GetValue<bool>("Database:MigrateOn
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseEdgeGuard();
+app.UseSecurityHeaders();
 
 if (app.Environment.IsDevelopment())
 {

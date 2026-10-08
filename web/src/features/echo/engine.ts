@@ -1,5 +1,6 @@
 import type { SiteContent } from '../../types/content';
 import { escapeHtml } from '../../lib/env';
+import { fmtMonth, monthIndex } from '../../lib/dates';
 import {
   BASE_SKILLS,
   CHIP_MAP,
@@ -38,6 +39,30 @@ export function echoContext(site: SiteContent): EchoContext {
   const p = site.profile;
   return { email: p.email, wa: `https://wa.me/${p.whatsapp}`, li: p.linkedin, gh: p.github };
 }
+
+const WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+const count = (n: number) => WORDS[n] ?? String(n);
+const listText = (items: string[]) =>
+  items.length < 2 ? items.join('') : `${items.slice(0, -1).join('; ')}; and ${items[items.length - 1]}`;
+
+/** Words in company names too generic to identify the company on their own. */
+const COMMON = new Set([
+  'group',
+  'professional',
+  'computers',
+  'computer',
+  'company',
+  'solutions',
+  'systems',
+  'services',
+  'technologies',
+  'technology',
+  'digital',
+  'international',
+  'mobility',
+  'software',
+  'university',
+]);
 
 const dn = (k: string) => DISPLAY[k] ?? k.replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -93,6 +118,89 @@ export class EchoEngine {
       const key = g.name.toLowerCase();
       this.skills[key] = (this.skills[key] ?? []).concat(g.items.map((x) => x.toLowerCase()));
     }
+    this.fromContent(site);
+  }
+
+  /**
+   * Answers that come straight from the published content, so editing the studio updates Echo too.
+   * The hand-written rules stay as they are for everything else.
+   */
+  private fromContent(site: SiteContent) {
+    const set = (id: string, a: string) => {
+      if (this.byId[id]) this.byId[id].a = a;
+    };
+    const e = escapeHtml;
+
+    const roles = site.experience
+      .filter((x) => !x.milestone)
+      .sort((a, b) => monthIndex(b.end) - monthIndex(a.end) || monthIndex(b.start) - monthIndex(a.start));
+    if (roles.length) {
+      const first = roles.reduce((m, r) => (monthIndex(r.start) < monthIndex(m.start) ? r : m), roles[0]);
+      set(
+        'exp',
+        `${count(roles.length)} role${roles.length === 1 ? '' : 's'} since ${fmtMonth(first.start)}:<div class="tlc">` +
+          roles
+            .map(
+              (r) =>
+                `<p><b>${e(r.title)}</b><span>${e(r.org)}, ${fmtMonth(r.start, true)} to ${fmtMonth(r.end, true)}</span></p>`,
+            )
+            .join('') +
+          '</div>' +
+          btn('See the full timeline', '/experience'),
+      );
+      // "What did he do at Eurisko?" and the like, for every company on the timeline.
+      const orgs = [...new Set(roles.map((r) => r.org))];
+      for (const org of orgs) {
+        const at = roles.filter((r) => r.org === org);
+        const words = org
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 3 && !COMMON.has(w));
+        const it: Intent = {
+          id: `org_${org.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          k: [org.toLowerCase(), ...words],
+          a:
+            `At ${e(org)}:<div class="tlc">` +
+            at
+              .map(
+                (r) =>
+                  `<p><b>${e(r.title)}</b><span>${fmtMonth(r.start, true)} to ${fmtMonth(r.end, true)}${
+                    r.bullets[0] ? `. ${e(r.bullets[0])}` : ''
+                  }</span></p>`,
+              )
+              .join('') +
+            '</div>' +
+            btn('See the full timeline', '/experience'),
+          f: ['Experience', 'Current role?'],
+        };
+        this.intents.push(it);
+        this.byId[it.id] = it;
+      }
+    }
+
+    const items = (list: { title: string; detail: string }[]) =>
+      list.map((x) => (x.detail ? `${e(x.title)} (${e(x.detail)})` : e(x.title)));
+    if (site.education.length) set('edu', `Education: ${listText(items(site.education))}.`);
+    if (site.certifications.length) set('certs', `Certifications: ${listText(items(site.certifications))}.`);
+    if (site.languages.length)
+      set('langs', `Languages: ${listText(site.languages.map((x) => `${e(x.title)}, ${e(x.detail.toLowerCase())}`))}.`);
+    if (site.volunteering.length) set('volunteer', `Volunteering: ${listText(items(site.volunteering))}.`);
+
+    const services = site.services.filter((x) => x.visible);
+    if (services.length)
+      set(
+        'hire',
+        `Yes. He takes on: ${listText(services.map((x) => e(x.title)))}.` +
+          btn('Request a service', '/services', true) +
+          btn('Email him', `mailto:${this.ctx.email}`),
+      );
+
+    set(
+      'cv',
+      'His CV is on this site, always up to date, and you can save it as a PDF.' +
+        btn('Open his CV', '/cv', true) +
+        btn('Experience', '/experience'),
+    );
   }
 
   get contactCard() {

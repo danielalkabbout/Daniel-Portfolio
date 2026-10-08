@@ -5,7 +5,7 @@
 | Database | Neon, `production` branch (Frankfurt) | Free |
 | API (.NET 10) | Render web service from `render.yaml` | Free |
 | Website (React) | Cloudflare Pages, built from `web/` | Free |
-| Images, bot check | Cloudflare R2 and Turnstile | Free |
+| Images, bot check, analytics | Cloudflare R2, Turnstile and Web Analytics | Free |
 | AI for Echo | Google AI Studio (Gemini) | Free tier |
 | Request emails | Resend | Free tier |
 
@@ -135,6 +135,29 @@ Until these are set, the pipeline still runs the tests and simply skips the depl
 ### 10. Keep the API awake (optional)
 Uses the same `API_URL` variable from step 9. The **Keep the API awake** workflow
 pings it every 14 minutes from 06:00 to midnight Lebanon time.
+
+### 11. Lock the API to the website (security)
+The website calls its own `/api` address, and a small Cloudflare Pages Function
+(`web/functions/api/[[path]].ts`) forwards those calls to Render. A shared secret proves a call came
+through that function. Once it is set, nobody can try to sign in, edit content or send requests by
+calling the Render address directly, and rate limits see each visitor's real IP.
+
+1. Make a random secret on your laptop:
+   `dotnet run --project api/src/Portfolio.Api -- new-jwt-key`
+   (any long random string works). Keep it in Notepad for the next two steps only.
+2. **Cloudflare Pages** > project > **Settings** > **Variables and Secrets** > **Add**:
+   type **Secret**, name `EDGE_KEY`, value the secret, environment **Production**. Save.
+   Then **Actions** tab on GitHub > **Pipeline** > **Run workflow** with "Redeploy" ticked, so the
+   site picks it up.
+3. **Render** > service > **Environment** > add `Edge__Key` with the same value >
+   **Save, rebuild, and deploy**.
+
+Do them in this order: if Render has the key before the website does, the studio sign-in and the
+request form refuse requests until step 2 is done.
+
+### 12. Visitor analytics (optional)
+Cloudflare Pages > project > **Metrics** > **Web Analytics** > **Enable**. It is free, needs no
+cookie banner, and the site's security policy already allows it.
 
 ---
 

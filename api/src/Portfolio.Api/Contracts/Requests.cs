@@ -2,7 +2,8 @@ namespace Portfolio.Api.Contracts;
 
 public sealed record LoginRequest(string Email, string Password);
 
-public sealed record LoginResponse(string Token, DateTime ExpiresAt);
+/// <summary>What the studio learns about its session. The token itself stays in an HttpOnly cookie.</summary>
+public sealed record SessionResponse(string Email, DateTime ExpiresAt);
 
 public sealed class ServiceRequestCreate
 {

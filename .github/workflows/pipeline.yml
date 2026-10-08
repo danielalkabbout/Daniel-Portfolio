@@ -154,18 +154,17 @@ jobs:
           echo "API content"
           projects=$(curl -fsS --max-time 30 "$API_URL/api/content" | jq '.projects | length')
           test "$projects" -gt 0
-          echo "API allows the website (CORS)"
-          allowed=$(curl -fsS -o /dev/null -D - -X OPTIONS "$API_URL/api/content" \
-            -H "Origin: $SITE_URL" -H "Access-Control-Request-Method: GET" | tr -d '\r' \
-            | awk 'tolower($1)=="access-control-allow-origin:"{print $2}')
-          if [ "$allowed" != "$SITE_URL" ]; then
-            echo "::error title=CORS::The API does not allow $SITE_URL. Set Cors__Origins__0 on Render to exactly $SITE_URL"
-            exit 1
-          fi
+          echo "Website reaches the API through /api"
+          viaSite=$(curl -fsS --max-time 90 "$SITE_URL/api/content" | jq '.projects | length')
+          test "$viaSite" -gt 0
+          echo "Security headers"
+          headers=$(curl -fsS -o /dev/null -D - "$SITE_URL/" | tr -d '\r' | tr 'A-Z' 'a-z')
+          echo "$headers" | grep -q '^content-security-policy:' || { echo "::error title=Headers::The site is missing its Content-Security-Policy"; exit 1; }
+          echo "$headers" | grep -q '^strict-transport-security:'
           echo "Website pages"
           for path in / /about /experience /projects /services /admin; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL$path")
             echo "$path -> $code"
             test "$code" = "200"
           done
-          echo "::notice title=Production check::API and website are up ($projects projects, CORS ok, all pages 200)"
+          echo "::notice title=Production check::API and website are up ($projects projects, /api proxy ok, security headers ok, all pages 200)"
