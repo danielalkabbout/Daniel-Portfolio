@@ -25,12 +25,6 @@ services:
       # Neon production branch, .NET format, pooling off
       - key: ConnectionStrings__Default
         sync: false
-      # Optional and normally left empty: the studio account lives in the database (create-admin).
-      # If set while the database has no account yet, the first sign-in stores them there.
-      - key: Admin__Email
-        sync: false
-      - key: Admin__PasswordHash
-        sync: false
       # The Cloudflare Pages address, for example https://danielalkabbout.pages.dev
       - key: Cors__Origins__0
         sync: false

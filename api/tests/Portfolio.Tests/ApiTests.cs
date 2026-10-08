@@ -42,8 +42,7 @@ public class ApiTests(ApiFactory factory)
     public async Task Wrong_password_is_rejected()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");
-        var response = await factory.CreateClient().PostAsJsonAsync("/api/auth/login",
-            new LoginRequest(ApiFactory.AdminEmail, "not the password"));
+        var response = await SrpClient.LoginAsync(factory.CreateClient(), ApiFactory.AdminEmail, "not the password");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 

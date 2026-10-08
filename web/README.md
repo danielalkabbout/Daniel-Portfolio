@@ -55,8 +55,9 @@ while the free API host is asleep.
 
 ## Studio
 
-`/admin` signs in with `POST /api/auth/login`. The API answers with an HttpOnly, SameSite=Strict
-session cookie that page scripts cannot read; the browser only keeps the email and expiry, to show the
+`/admin` signs in with SRP (`features/admin/srp.ts`): `POST /api/auth/challenge` with a fingerprint of the
+email, then `POST /api/auth/login` with a one-time proof, so neither the email nor the password is ever
+sent. The API answers with an HttpOnly, SameSite=Strict session cookie that page scripts cannot read; the browser only keeps the email and expiry, to show the
 Studio link. Every request sends an `X-Requested-With` header, which the API requires for any change
 (CSRF protection).
 Edits stay in a local draft until **Publish changes**, which saves with `PUT /api/admin/content`
