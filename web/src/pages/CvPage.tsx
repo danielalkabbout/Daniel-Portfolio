@@ -19,7 +19,8 @@ export default function CvPage() {
   const roles = site.experience
     .filter((e) => !e.milestone)
     .sort((a, b) => monthIndex(b.end) - monthIndex(a.end) || monthIndex(b.start) - monthIndex(a.start));
-  const projects = site.projects.filter((x) => x.visible).slice(0, 5);
+  // Every project shown on the site, in the studio's order: a project added there appears here too.
+  const projects = site.projects.filter((x) => x.visible);
 
   // Printing uses the CV styles only (see .cv-mode in site.css).
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function CvPage() {
 
           {projects.length > 0 && (
             <section>
-              <h3>Selected projects</h3>
+              <h3>Projects</h3>
               {projects.map((x) => (
                 <div className="cv-item" key={x.id}>
                   <div className="cv-line">
