@@ -1,7 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from '../../api/client';
 import { Ic, useUi } from './ui';
-import { useAdminToken } from './auth';
 
 /* Form fields used by the studio's edit drawer and inline forms. */
 
@@ -334,7 +333,6 @@ function ImageField({
   onChange: (v: string) => void;
   setErr: (e: string | null) => void;
 }) {
-  const token = useAdminToken();
   const { toast } = useUi();
   const fileRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
@@ -347,7 +345,7 @@ function ImageField({
     try {
       const fd = new FormData();
       fd.append('file', f);
-      const res = await api<{ url: string }>('/api/admin/media', { method: 'POST', body: fd, token, timeoutMs: 60000 });
+      const res = await api<{ url: string }>('/api/admin/media', { method: 'POST', body: fd, timeoutMs: 60000 });
       onChange(res.url);
     } catch (e) {
       if (e instanceof ApiError && e.status === 400) setErr(e.message);

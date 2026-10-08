@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Outlet, ScrollRestoration } from 'react-router';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { BackToTop } from '../components/BackToTop';
 import { CommandPalette } from '../components/CommandPalette';
 import { ToastProvider } from '../components/Toast';
 import { Intro } from '../features/intro/Intro';
@@ -48,6 +49,7 @@ function Shell() {
       </main>
       <CommandPalette open={palette} setOpen={setPalette} />
       <Footer />
+      <BackToTop />
       <PreviewBanner />
       <ScrollRestoration />
     </>

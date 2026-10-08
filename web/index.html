@@ -2,18 +2,60 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Daniel Al Kabbout, AI Software Engineer and Backend Developer. AI agents, WhatsApp bots, web and mobile apps." />
     <title>Daniel Al Kabbout, AI Software Engineer</title>
+    <meta name="description" content="Daniel Al Kabbout, AI Software Engineer and Technical Lead in Lebanon. AI agents on company data, WhatsApp bots, web and mobile apps, and the .NET, Java and Python backends behind them." />
+    <meta name="author" content="Daniel Al Kabbout" />
+    <link rel="canonical" href="%SITE_URL%/" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0b1324" />
+
+    <!-- Link previews (LinkedIn, WhatsApp, Slack, X, Facebook) -->
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="Daniel Al Kabbout" />
+    <meta property="og:title" content="Daniel Al Kabbout, AI Software Engineer" />
+    <meta property="og:description" content="AI agents on company data, WhatsApp bots, web and mobile apps, and the backends behind them. Open to relocation and new projects." />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:image" content="%SITE_URL%/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Daniel Al Kabbout, AI Software Engineer and Technical Lead" />
+    <meta property="profile:first_name" content="Daniel" />
+    <meta property="profile:last_name" content="Al Kabbout" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Daniel Al Kabbout, AI Software Engineer" />
+    <meta name="twitter:description" content="AI agents, WhatsApp bots, web and mobile apps, and the backends behind them." />
+    <meta name="twitter:image" content="%SITE_URL%/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Daniel Al Kabbout",
+        "jobTitle": "AI Software Engineer and Technical Lead",
+        "worksFor": { "@type": "Organization", "name": "SoftFlow Group" },
+        "alumniOf": { "@type": "CollegeOrUniversity", "name": "Antonine University" },
+        "address": { "@type": "PostalAddress", "addressCountry": "LB" },
+        "url": "%SITE_URL%/",
+        "image": "%SITE_URL%/og-image.png",
+        "sameAs": ["https://www.linkedin.com/in/daniel-alkabbout", "https://github.com/danielalkabbout"],
+        "knowsAbout": ["Generative AI", "AI agents", "Azure AI Foundry", "Copilot Studio", "C#", ".NET", "Java", "Spring Boot", "Python", "React", "SharePoint"]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Herr+Von+Muellerhoff&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-    <script>
-      try { document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark'; } catch (e) { document.documentElement.dataset.theme = 'dark'; }
-    </script>
+    <script src="/theme.js"></script>
   </head>
   <body>
+    <noscript>
+      <p style="padding:2rem;font-family:system-ui,sans-serif">Daniel Al Kabbout, AI Software Engineer. This site needs JavaScript. Reach me at danielalkabbout@gmail.com.</p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,11 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { Page } from '../components/Page';
-import { api, API_URL, ApiError } from '../api/client';
+import { api, API_ENABLED, ApiError } from '../api/client';
 import { siteContentSchema, type SiteContent } from '../types/content';
 import { fallbackContent } from '../api/content';
-import { login, logout, useAdminToken } from '../features/admin/auth';
+import { checkSession, login, logout, useAdminSession } from '../features/admin/auth';
 import { Studio } from '../features/admin/Studio';
 import { Ic, UiProvider } from '../features/admin/ui';
 
@@ -79,11 +79,11 @@ function Login() {
   );
 }
 
-function Loaded({ token }: { token: string }) {
+function Loaded() {
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['admin', 'content'],
     queryFn: async (): Promise<SiteContent> => {
-      const raw = await api<unknown>('/api/admin/content', { token, timeoutMs: 90000 });
+      const raw = await api<unknown>('/api/admin/content', { timeoutMs: 90000 });
       const parsed = siteContentSchema.safeParse(raw);
       // An empty database returns a blank document; start from the bundled content instead.
       return parsed.success && parsed.data.projects.length + parsed.data.experience.length > 0
@@ -117,15 +117,19 @@ function Loaded({ token }: { token: string }) {
         </div>
       </div>
     );
-  return <Studio initial={data} token={token} />;
+  return <Studio initial={data} />;
 }
 
 export default function AdminPage() {
-  const token = useAdminToken();
+  const session = useAdminSession();
+  // The session cookie is HttpOnly, so ask the API whether it is still valid (it may come from another tab).
+  useEffect(() => {
+    if (API_ENABLED) void checkSession();
+  }, []);
   return (
     <Page name="admin" title="Content studio, Daniel Al Kabbout">
       <UiProvider>
-        {!API_URL ? (
+        {!API_ENABLED ? (
           <div className="adm-gate">
             <Ic n="lock" />
             <h2>The studio needs the API</h2>
@@ -134,8 +138,8 @@ export default function AdminPage() {
               Back to home
             </Link>
           </div>
-        ) : token ? (
-          <Loaded token={token} />
+        ) : session ? (
+          <Loaded />
         ) : (
           <Login />
         )}

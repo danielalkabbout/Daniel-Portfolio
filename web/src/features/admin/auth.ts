@@ -3,27 +3,28 @@ import { api } from '../../api/client';
 import { store } from '../../lib/env';
 
 /**
- * The admin token lives in sessionStorage: it survives reloads in this tab and disappears when the tab closes.
- * The API is on another domain, so a bearer token is used instead of a cookie.
+ * The studio session is an HttpOnly cookie set by the API: page scripts can't read it, so it can't be
+ * stolen by injected code. This file only remembers *that* someone is signed in (email and expiry),
+ * which is not secret, so the header can show the Studio link without asking the server.
  */
-const KEY = 'dk-admin-token';
+const KEY = 'dk-admin-session';
 const listeners = new Set<() => void>();
 
-interface Saved {
-  token: string;
+export interface Session {
+  email: string;
   expiresAt: string;
 }
 
-function read(): string | null {
+function read(): Session | null {
   const raw = store('session').get(KEY);
   if (!raw) return null;
   try {
-    const s = JSON.parse(raw) as Saved;
-    if (new Date(s.expiresAt).getTime() <= Date.now()) {
+    const s = JSON.parse(raw) as Session;
+    if (!s.email || new Date(s.expiresAt).getTime() <= Date.now()) {
       store('session').remove(KEY);
       return null;
     }
-    return s.token;
+    return s;
   } catch {
     return null;
   }
@@ -31,12 +32,15 @@ function read(): string | null {
 
 let current = typeof window !== 'undefined' ? read() : null;
 
-function emit() {
+function save(s: Session | null) {
+  if (s) store('session').set(KEY, JSON.stringify({ email: s.email, expiresAt: s.expiresAt }));
+  else store('session').remove(KEY);
   current = read();
   listeners.forEach((l) => l());
 }
 
-export function useAdminToken() {
+/** The signed-in session as last confirmed by the API, or null. */
+export function useAdminSession() {
   return useSyncExternalStore(
     (l) => {
       listeners.add(l);
@@ -47,27 +51,34 @@ export function useAdminToken() {
   );
 }
 
+/** Asks the API whether the session cookie is still valid. */
+export async function checkSession(): Promise<Session | null> {
+  try {
+    const s = await api<Session>('/api/auth/me');
+    save(s);
+    return s;
+  } catch {
+    save(null);
+    return null;
+  }
+}
+
 export async function login(email: string, password: string) {
-  const res = await api<{ token: string; expiresAt: string }>('/api/auth/login', {
-    method: 'POST',
-    body: { email, password },
-  });
-  store('session').set(KEY, JSON.stringify(res));
-  emit();
+  save(await api<Session>('/api/auth/login', { method: 'POST', body: { email, password } }));
 }
 
+/** Forgets the session here at once, and asks the API to delete the cookie. */
 export function logout() {
-  store('session').remove(KEY);
-  emit();
+  save(null);
+  void api('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
 }
 
-/** Changes the studio password. The API ends other sessions and returns a fresh token for this one. */
-export async function changePassword(token: string, currentPassword: string, newPassword: string) {
-  const res = await api<{ token: string; expiresAt: string }>('/api/auth/change-password', {
-    method: 'POST',
-    token,
-    body: { currentPassword, newPassword },
-  });
-  store('session').set(KEY, JSON.stringify(res));
-  emit();
+/** Changes the studio password. The API ends other sessions and gives this one a fresh cookie. */
+export async function changePassword(currentPassword: string, newPassword: string) {
+  save(
+    await api<Session>('/api/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword, newPassword },
+    }),
+  );
 }

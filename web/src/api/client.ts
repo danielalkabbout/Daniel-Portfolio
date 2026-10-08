@@ -1,6 +1,13 @@
-/** Small fetch wrapper. Every request goes through here so errors and the base URL live in one place. */
+/**
+ * Small fetch wrapper. Every request goes through here so errors and headers live in one place.
+ *
+ * The site always calls its own /api path. In production a Cloudflare Pages Function forwards it to the
+ * API (functions/api/[[path]].ts); in development Vite does (vite.config.ts). Same-origin requests let
+ * the studio use an HttpOnly cookie instead of keeping a token where scripts could read it.
+ */
 
-export const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+/** True when this build has an API behind /api (VITE_API_URL was set at build time). */
+export const API_ENABLED = Boolean(import.meta.env.VITE_API_URL);
 
 export class ApiError extends Error {
   status: number;
@@ -18,23 +25,25 @@ export class ApiError extends Error {
   }
 }
 
-type ApiInit = Omit<RequestInit, 'body'> & { token?: string | null; body?: unknown; timeoutMs?: number };
+type ApiInit = Omit<RequestInit, 'body'> & { body?: unknown; timeoutMs?: number };
 
 export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
-  if (!API_URL) throw new ApiError(0, 'The API address is not set.');
-  const { token, body, timeoutMs = 30000, headers, ...rest } = init;
+  if (!API_ENABLED) throw new ApiError(0, 'The API address is not set.');
+  const { body, timeoutMs = 30000, headers, ...rest } = init;
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   let res: Response;
   try {
-    res = await fetch(`${API_URL}${path}`, {
+    res = await fetch(path, {
       ...rest,
       signal: rest.signal ?? ctrl.signal,
+      credentials: 'same-origin',
       headers: {
+        // The API refuses data changes without this header, which other sites can't add (CSRF protection).
+        'X-Requested-With': 'dk-site',
         Accept: 'application/json',
         ...(body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
       body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),

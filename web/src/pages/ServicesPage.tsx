@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import clsx from 'clsx';
 import { Page } from '../components/Page';
 import { useSite } from '../api/content';
-import { api, API_URL, ApiError } from '../api/client';
+import { api, API_ENABLED, ApiError } from '../api/client';
 import { clamp01, reduceMotion, smooth } from '../lib/env';
 import { ArrowRight, ChatIcon, LinkedInIcon, MailIcon, SERVICE_VISUALS, visualKey } from '../lib/icons';
 import { Turnstile, TURNSTILE_SITE_KEY } from '../features/services/Turnstile';
@@ -120,7 +120,7 @@ export default function ServicesPage() {
       return;
     }
     const sv = picked.join(', ');
-    if (!API_URL) return mailto(sv);
+    if (!API_ENABLED) return mailto(sv);
     if (TURNSTILE_SITE_KEY && !token)
       return setErrors({ form: 'Please complete the quick check above, then send again.' });
 
@@ -265,7 +265,7 @@ export default function ServicesPage() {
             </div>
             <h2>Request a service</h2>
             <p>
-              {API_URL
+              {API_ENABLED
                 ? 'Three quick steps, and your request lands straight in my inbox. Prefer to talk directly?'
                 : 'Three quick steps. When you send, your email app opens with everything filled in. Prefer to talk directly?'}
             </p>
@@ -407,7 +407,7 @@ export default function ServicesPage() {
                   />
                   <span className="err" />
                 </div>
-                {API_URL && step === 2 && !done && <Turnstile onToken={setToken} />}
+                {API_ENABLED && step === 2 && !done && <Turnstile onToken={setToken} />}
                 {errors.form && (
                   <p className="wz-err" role="alert">
                     {errors.form}

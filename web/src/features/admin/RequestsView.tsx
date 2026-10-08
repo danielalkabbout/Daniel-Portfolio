@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { api } from '../../api/client';
 import { Head } from './views';
 import { Ic, useUi } from './ui';
-import { useStudio } from './studio-state';
 
 export interface ServiceRequest {
   id: number;
@@ -19,10 +18,10 @@ export interface ServiceRequest {
 
 const STATUSES = ['New', 'Read', 'Replied', 'Archived'] as const;
 
-export function useRequests(token: string) {
+export function useRequests() {
   return useQuery({
     queryKey: ['admin', 'requests'],
-    queryFn: () => api<ServiceRequest[]>('/api/admin/requests', { token }),
+    queryFn: () => api<ServiceRequest[]>('/api/admin/requests'),
     refetchInterval: 60_000,
     staleTime: 30_000,
   });
@@ -30,16 +29,15 @@ export function useRequests(token: string) {
 
 /** Requests sent from the Services page form. */
 export function RequestsView() {
-  const { token } = useStudio();
   const { ask, toast } = useUi();
   const qc = useQueryClient();
-  const { data, isLoading, error, refetch } = useRequests(token);
+  const { data, isLoading, error, refetch } = useRequests();
   const [filter, setFilter] = useState<'All' | (typeof STATUSES)[number]>('All');
   const [openId, setOpenId] = useState<number | null>(null);
 
   const setStatus = async (r: ServiceRequest, status: string) => {
     try {
-      await api(`/api/admin/requests/${r.id}`, { method: 'PATCH', token, body: { status } });
+      await api(`/api/admin/requests/${r.id}`, { method: 'PATCH', body: { status } });
       qc.setQueryData<ServiceRequest[]>(['admin', 'requests'], (list) =>
         list?.map((x) => (x.id === r.id ? { ...x, status: status as ServiceRequest['status'] } : x)),
       );
@@ -58,7 +56,7 @@ export function RequestsView() {
     )
       return;
     try {
-      await api(`/api/admin/requests/${r.id}`, { method: 'DELETE', token });
+      await api(`/api/admin/requests/${r.id}`, { method: 'DELETE' });
       qc.setQueryData<ServiceRequest[]>(['admin', 'requests'], (list) => list?.filter((x) => x.id !== r.id));
       toast('Request deleted');
     } catch (e) {
@@ -185,10 +183,9 @@ interface AuditEntry {
 
 /** Recent changes made from the studio, as recorded by the API. */
 export function ActivityView() {
-  const { token } = useStudio();
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'audit'],
-    queryFn: () => api<AuditEntry[]>('/api/admin/audit?take=100', { token }),
+    queryFn: () => api<AuditEntry[]>('/api/admin/audit?take=100'),
   });
   const verb: Record<string, string> = {
     update: 'Updated',

@@ -35,7 +35,6 @@ export interface StudioApi {
   replace: (d: SiteContent) => void;
   open: (spec: DrawerSpec) => void;
   show: (t: Tab) => void;
-  token: string;
 }
 
 export const StudioCtx = createContext<StudioApi>(null as unknown as StudioApi);

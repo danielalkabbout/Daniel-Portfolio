@@ -16,7 +16,7 @@ Copy `.env.example` to `.env.local` to point the site at the API:
 
 | Variable | What it does |
 | --- | --- |
-| `VITE_API_URL` | Address of the .NET API, for example `http://localhost:5080`. Empty means the site runs on the bundled content only, the request form opens the visitor's email app, and the studio is disabled. |
+| `VITE_API_URL` | Address of the .NET API, for example `http://localhost:5080`. The browser never calls it directly: the site calls its own `/api`, which Vite (locally) or a Cloudflare Pages Function (`functions/api/[[path]].ts`, in production) forwards there. Empty means the site runs on the bundled content only, the request form opens the visitor's email app, and the studio is disabled. |
 | `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key for the request form. Empty skips the bot check (the API skips it too when it has no secret). |
 
 ## Structure
@@ -41,7 +41,9 @@ src/
   styles/       site.css (the whole design) and intro.css
 scripts/
   fetch-content.mjs   runs before `npm run build`; refreshes fallback.json from the API when VITE_API_URL is set
+functions/api/[[path]].ts   Cloudflare Pages Function: forwards /api/* to the API (adds EDGE_KEY and the visitor IP)
 public/_redirects     single-page app routing on Cloudflare Pages
+public/_headers       security headers (CSP, HSTS) and caching
 ```
 
 ## Content
@@ -53,7 +55,10 @@ while the free API host is asleep.
 
 ## Studio
 
-`/admin` signs in with `POST /api/auth/login` and keeps the token in sessionStorage for this tab.
+`/admin` signs in with `POST /api/auth/login`. The API answers with an HttpOnly, SameSite=Strict
+session cookie that page scripts cannot read; the browser only keeps the email and expiry, to show the
+Studio link. Every request sends an `X-Requested-With` header, which the API requires for any change
+(CSRF protection).
 Edits stay in a local draft until **Publish changes**, which saves with `PUT /api/admin/content`
 and then asks the API to rebuild the site (`POST /api/admin/publish`). **Preview** shows the draft
 on the real pages in this tab only.

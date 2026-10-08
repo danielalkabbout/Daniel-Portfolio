@@ -98,6 +98,9 @@ export default function AboutPage() {
               <Link className="btn primary" to="/services">
                 Request my services
               </Link>
+              <Link className="btn" to="/cv">
+                Download my CV
+              </Link>
               <a className="btn" href={`mailto:${site.profile.email}`}>
                 Email me
               </a>

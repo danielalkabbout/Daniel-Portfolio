@@ -50,11 +50,25 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var login = await CreateClient().PostAsJsonAsync("/api/auth/login",
             new Portfolio.Api.Contracts.LoginRequest(AdminEmail, AdminPassword));
         login.EnsureSuccessStatusCode();
-        var body = await login.Content.ReadFromJsonAsync<Portfolio.Api.Contracts.LoginResponse>(System.Text.Json.JsonSerializerOptions.Web);
-        return adminToken = body!.Token;
+        return adminToken = SessionToken(login);
+    }
+
+    /// <summary>The token the API put in the HttpOnly session cookie.</summary>
+    public static string SessionToken(HttpResponseMessage response)
+    {
+        var cookie = response.Headers.GetValues("Set-Cookie")
+            .First(c => c.StartsWith(Portfolio.Api.Services.SessionCookie.Name + "=", StringComparison.Ordinal));
+        return cookie[(cookie.IndexOf('=') + 1)..cookie.IndexOf(';')];
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.UseEnvironment("Development");
+
+    // The website sends this on every request; the API refuses data changes without it (CSRF protection).
+    protected override void ConfigureClient(HttpClient client)
+    {
+        base.ConfigureClient(client);
+        client.DefaultRequestHeaders.Add(Portfolio.Api.Services.ApiSecurity.CsrfHeader, "tests");
+    }
 
     public async Task InitializeAsync()
     {

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Portfolio.Api.Contracts;
@@ -14,8 +13,6 @@ namespace Portfolio.Tests;
 [Collection(DbCollection.Name)]
 public class AdminAccountTests(ApiFactory factory)
 {
-    private static readonly JsonSerializerOptions Json = JsonSerializerOptions.Web;
-
     private async Task CreateAccountAsync(string email, string password)
     {
         using var scope = factory.Services.CreateScope();
@@ -59,8 +56,8 @@ public class AdminAccountTests(ApiFactory factory)
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");
         const string email = "change@test.local";
         await CreateAccountAsync(email, "the first password");
-        var login = await (await LoginAsync(email, "the first password")).Content.ReadFromJsonAsync<LoginResponse>(Json);
-        var oldClient = Client(login!.Token);
+        var login = await LoginAsync(email, "the first password");
+        var oldClient = Client(ApiFactory.SessionToken(login));
         Assert.Equal(HttpStatusCode.OK, (await oldClient.GetAsync("/api/auth/me")).StatusCode);
 
         var tooShort = await oldClient.PostAsJsonAsync("/api/auth/change-password", new ChangePasswordRequest("the first password", "short"));
@@ -70,10 +67,10 @@ public class AdminAccountTests(ApiFactory factory)
 
         var changed = await oldClient.PostAsJsonAsync("/api/auth/change-password", new ChangePasswordRequest("the first password", "the second password"));
         Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
-        var fresh = await changed.Content.ReadFromJsonAsync<LoginResponse>(Json);
+        var fresh = ApiFactory.SessionToken(changed);
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await oldClient.GetAsync("/api/auth/me")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await Client(fresh!.Token).GetAsync("/api/auth/me")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Client(fresh).GetAsync("/api/auth/me")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await LoginAsync(email, "the first password")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await LoginAsync(email, "the second password")).StatusCode);
     }

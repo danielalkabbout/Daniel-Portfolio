@@ -45,7 +45,7 @@ function savedDraft(initial: SiteContent) {
 }
 
 /** The editor once signed in: tabs on the left, the current view, and the publish bar. */
-export function Studio({ initial, token }: { initial: SiteContent; token: string }) {
+export function Studio({ initial }: { initial: SiteContent }) {
   const { toast, ask } = useUi();
   const qc = useQueryClient();
   const [base, setBase] = useState(initial);
@@ -55,7 +55,7 @@ export function Studio({ initial, token }: { initial: SiteContent; token: string
   const [restore, setRestore] = useState<{ t: number; d: SiteContent } | null>(() => savedDraft(initial));
   const [publishing, setPublishing] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
-  const requests = useRequests(token);
+  const requests = useRequests();
   const newCount = requests.data ? requests.data.filter((r) => r.status === 'New').length : null;
 
   const ch = changedSections(d, base);
@@ -96,7 +96,7 @@ export function Studio({ initial, token }: { initial: SiteContent; token: string
     mainRef.current?.scrollTo({ top: 0 });
   }, []);
 
-  const studio: StudioApi = { d, base, update, replace: setD, open: setDrawer, show, token };
+  const studio: StudioApi = { d, base, update, replace: setD, open: setDrawer, show };
 
   const discard = async () => {
     if (
@@ -164,7 +164,6 @@ export function Studio({ initial, token }: { initial: SiteContent; token: string
     try {
       const res = await api<{ changed: string[]; content: unknown }>('/api/admin/content', {
         method: 'PUT',
-        token,
         body: d,
         timeoutMs: 90000,
       });
@@ -176,7 +175,7 @@ export function Studio({ initial, token }: { initial: SiteContent; token: string
       qc.setQueryData(['content'], saved);
       // Rebuild the static site so its built-in snapshot matches too. Optional: the live API already serves the new content.
       try {
-        await api('/api/admin/publish', { method: 'POST', token });
+        await api('/api/admin/publish', { method: 'POST' });
         toast('Published. The site is rebuilding with your changes.');
       } catch {
         toast('Published. Your changes are live for everyone.');

@@ -31,15 +31,26 @@ public class AuthController(AdminAccounts accounts, TokenService tokens, AuditWr
 
         var account = result.Account!;
         await audit.WriteAsync("login", "admin", account.Id.ToString(), ct: ct);
-        var (token, expiresAt) = tokens.Create(account);
-        return Ok(new LoginResponse(token, expiresAt));
+        return StartSession(account);
     }
 
+    /// <summary>Who is signed in. The studio calls this on load, since scripts can't read the session cookie.</summary>
     [HttpGet("me")]
     [Authorize(Roles = "admin")]
-    public IActionResult Me() => Ok(new { email = HttpContext.User.FindFirst("sub")?.Value });
+    public IActionResult Me()
+    {
+        var exp = long.TryParse(User.FindFirst("exp")?.Value, out var s) ? DateTimeOffset.FromUnixTimeSeconds(s).UtcDateTime : DateTime.UtcNow;
+        return Ok(new SessionResponse(User.FindFirst("sub")?.Value ?? "", exp));
+    }
 
-    /// <summary>Changes the studio password. Other signed-in sessions stop working; this one gets a new token.</summary>
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        SessionCookie.Clear(HttpContext);
+        return NoContent();
+    }
+
+    /// <summary>Changes the studio password. Other signed-in sessions stop working; this one gets a new cookie.</summary>
     [HttpPost("change-password")]
     [Authorize(Roles = "admin")]
     [EnableRateLimiting("strict")]
@@ -54,8 +65,15 @@ public class AuthController(AdminAccounts accounts, TokenService tokens, AuditWr
                 new Dictionary<string, string[]> { ["Password"] = [problem] }));
 
         await audit.WriteAsync("password", "admin", account.Id.ToString(), ct: ct);
+        return StartSession(account);
+    }
+
+    /// <summary>Puts a fresh token in the HttpOnly cookie. The response body never contains it.</summary>
+    private OkObjectResult StartSession(Portfolio.Domain.Entities.AdminAccount account)
+    {
         var (token, expiresAt) = tokens.Create(account);
-        return Ok(new LoginResponse(token, expiresAt));
+        SessionCookie.Write(HttpContext, token);
+        return Ok(new SessionResponse(account.Email, expiresAt));
     }
 
     public static string HashPassword(string password) => AdminAccounts.Hash(password);
