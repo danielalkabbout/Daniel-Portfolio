@@ -19,6 +19,8 @@ public class Experience : IAuditable
     public List<string> Bullets { get; set; } = [];
     public List<string> Tags { get; set; } = [];
     public bool IsMilestone { get; set; }
+    /// <summary>Leave this role off the CV.</summary>
+    public bool HideFromCv { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

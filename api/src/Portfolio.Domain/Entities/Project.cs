@@ -22,6 +22,10 @@ public class Project : IAuditable
     public string ImageUrl { get; set; } = "";
     public bool IsVisible { get; set; } = true;
     public bool ShowOnHome { get; set; } = true;
+    /// <summary>Leave this project off the CV.</summary>
+    public bool HideFromCv { get; set; }
+    /// <summary>Bullets for the CV. Empty means the CV uses the summary.</summary>
+    public List<string> CvBullets { get; set; } = [];
     public int SortOrder { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

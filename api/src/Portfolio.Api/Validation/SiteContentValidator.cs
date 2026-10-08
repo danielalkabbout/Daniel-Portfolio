@@ -47,6 +47,8 @@ public partial class SiteContentValidator : AbstractValidator<SiteContentDto>
             p.RuleFor(x => x.Live).Must(BeEmptyOrHttpsUrl).WithMessage("Enter a full link starting with https://");
             p.RuleFor(x => x.Demo).Must(d => DemoKeys.Contains(d ?? "")).WithMessage("Unknown demo.");
             p.RuleFor(x => x.Icon).MaximumLength(30);
+            p.RuleFor(x => x.CvBullets).Must(l => l.Count <= 6).WithMessage("Use at most 6 CV bullets.");
+            p.RuleForEach(x => x.CvBullets).MaximumLength(400);
             p.RuleFor(x => x.Image).Must(BeEmptyUrlOrDataImage)
                 .WithMessage("The screenshot must be an https link or an uploaded image under 1.5 MB.");
         });
@@ -106,6 +108,71 @@ public partial class SiteContentValidator : AbstractValidator<SiteContentDto>
         RuleForEach(x => x.Languages).SetValidator(new TextItemValidator());
         RuleFor(x => x.Volunteering).NotNull().Must(l => l.Count <= 30).WithMessage("Use at most 30 volunteering items.");
         RuleForEach(x => x.Volunteering).SetValidator(new TextItemValidator());
+
+        RuleFor(x => x.Cv).NotNull().SetValidator(new CvValidator());
+        RuleFor(x => x.Pages).NotNull().SetValidator(new PagesValidator());
+    }
+
+    /// <summary>The CV sections the site knows how to draw.</summary>
+    public static readonly HashSet<string> CvSectionKeys =
+        ["summary", "skills", "experience", "projects", "education", "certifications", "languages", "volunteering"];
+
+    private sealed class CvValidator : AbstractValidator<CvDto>
+    {
+        public CvValidator()
+        {
+            RuleFor(x => x.Headline).Must(l => l.Count <= 4).WithMessage("Use at most 4 parts in the CV headline.");
+            RuleForEach(x => x.Headline).MaximumLength(60);
+            RuleFor(x => x.Summary).MaximumLength(1500);
+            RuleFor(x => x.Location).MaximumLength(80);
+            RuleFor(x => x.Availability).MaximumLength(80);
+            RuleFor(x => x.ProjectStyle).Must(v => v is "summary" or "features" or "both")
+                .WithMessage("Project style must be summary, features or both.");
+            RuleFor(x => x.Sections).Must(l => l.Count <= CvSectionKeys.Count && l.Select(s => s.Key).Distinct().Count() == l.Count)
+                .WithMessage("Each CV section can appear once.");
+            RuleForEach(x => x.Sections).ChildRules(s =>
+            {
+                s.RuleFor(x => x.Key).Must(k => CvSectionKeys.Contains(k)).WithMessage("Unknown CV section.");
+                s.RuleFor(x => x.Title).MaximumLength(40);
+            });
+        }
+    }
+
+    private sealed class PagesValidator : AbstractValidator<PagesDto>
+    {
+        public PagesValidator()
+        {
+            var page = new PageTextValidator();
+            RuleFor(x => x.Home).NotNull().SetValidator(page);
+            RuleFor(x => x.About).NotNull().SetValidator(page);
+            RuleFor(x => x.Experience).NotNull().SetValidator(page);
+            RuleFor(x => x.Projects).NotNull().SetValidator(page);
+            RuleFor(x => x.Services).NotNull().SetValidator(page);
+            RuleFor(x => x.Cv).NotNull().SetValidator(page);
+            RuleFor(x => x.Footer).NotNull().SetValidator(page);
+        }
+    }
+
+    private sealed class PageTextValidator : AbstractValidator<PageTextDto>
+    {
+        public PageTextValidator()
+        {
+            RuleFor(x => x.Kicker).MaximumLength(60);
+            RuleFor(x => x.Title).MaximumLength(160);
+            RuleFor(x => x.Accent).MaximumLength(80);
+            RuleFor(x => x.Intro).MaximumLength(400);
+            RuleFor(x => x.Lead).MaximumLength(300);
+            RuleFor(x => x.Paragraphs).Must(l => l.Count <= 10).WithMessage("Use at most 10 paragraphs.");
+            RuleForEach(x => x.Paragraphs).MaximumLength(1000);
+            RuleFor(x => x.Items).Must(l => l.Count <= 24).WithMessage("Use at most 24 items.");
+            RuleForEach(x => x.Items).MaximumLength(40);
+            RuleFor(x => x.Steps).Must(l => l.Count <= 6).WithMessage("Use at most 6 steps.");
+            RuleForEach(x => x.Steps).ChildRules(t =>
+            {
+                t.RuleFor(x => x.Title).NotEmpty().MaximumLength(60);
+                t.RuleFor(x => x.Detail).MaximumLength(300);
+            });
+        }
     }
 
     private static bool UniqueIds(List<ProjectDto> items) => items.Select(x => x.Id).Distinct().Count() == items.Count;

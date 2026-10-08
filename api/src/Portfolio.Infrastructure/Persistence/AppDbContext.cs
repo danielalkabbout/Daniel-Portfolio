@@ -16,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
+    public DbSet<ContentDocument> ContentDocuments => Set<ContentDocument>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -113,6 +114,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.EntityId).HasMaxLength(80);
             e.Property(x => x.Details).HasMaxLength(1000);
             e.HasIndex(x => x.At);
+        });
+
+        b.Entity<ContentDocument>(e =>
+        {
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).HasMaxLength(40);
+            e.Property(x => x.Json).HasColumnType("jsonb");
         });
 
         b.Entity<AdminAccount>(e =>
