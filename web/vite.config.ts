@@ -74,7 +74,8 @@ export default defineConfig(({ mode }) => {
           codeSplitting: {
             groups: [
               { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/, priority: 2 },
-              { name: 'vendor', test: /node_modules[\\/]/, priority: 1 },
+              // Only libraries every page needs; the PDF library (jsPDF) stays in its own on-demand chunk.
+              { name: 'vendor', test: /node_modules[\\/](@tanstack|zod|clsx)[\\/]/, priority: 1 },
             ],
           },
         },
