@@ -20,3 +20,14 @@ if (!window.matchMedia)
       removeEventListener: () => {},
       dispatchEvent: () => false,
     }) as MediaQueryList;
+
+// jsdom has no IntersectionObserver either; the scroll effects only need it to exist.
+if (!('IntersectionObserver' in window))
+  (window as unknown as { IntersectionObserver: unknown }).IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  };
