@@ -62,7 +62,7 @@ public class ValidationTests
     public void Echo_facts_include_projects_and_contact()
     {
         var facts = EchoAssistant.BuildFacts(LoadSeed());
-        Assert.Contains("WhatsApp AI Assistant for Microsoft 365", facts);
+        Assert.Contains("WhatsApp AI Agent for Microsoft 365", facts);
         Assert.Contains("danielalkabbout@gmail.com", facts);
     }
 

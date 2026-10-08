@@ -41,36 +41,8 @@
   ],
   "projects": [
     {
-      "id": "sharepoint-ldap",
-      "title": "SharePoint On-Premises data retrieval with LDAP",
-      "short": "SharePoint + LDAP",
-      "kind": "Work project, .NET",
-      "tagline": "Work, .NET",
-      "summary": "An ASP.NET Core service built at work that connects to an LDAP server to retrieve data for SharePoint on-premises.",
-      "reel": "An ASP.NET Core service that connects to an LDAP server to retrieve data for SharePoint on-premises.",
-      "features": [
-        "Built with ASP.NET Core and C#",
-        "Connects to the organization's LDAP server to retrieve directory data",
-        "Makes that data available to SharePoint on-premises",
-        "Built for a real workplace, as part of my job"
-      ],
-      "tags": [
-        "C#",
-        "ASP.NET Core",
-        "LDAP",
-        "SharePoint On-Premises"
-      ],
-      "github": "",
-      "live": "",
-      "demo": "ldap",
-      "icon": "data",
-      "image": "",
-      "visible": true,
-      "home": true
-    },
-    {
       "id": "whatsapp",
-      "title": "WhatsApp AI Assistant for Microsoft 365",
+      "title": "WhatsApp AI Agent for Microsoft 365",
       "short": "WhatsApp AI Assistant",
       "kind": "AI assistant",
       "tagline": "AI, WhatsApp",
@@ -84,10 +56,8 @@
       ],
       "tags": [
         "TypeScript",
-        "WhatsApp Cloud API",
-        "Microsoft Graph API",
-        "GPT-4o mini",
-        "Azure AI Speech"
+        "Azure OpenAI",
+        "Microsoft Graph API"
       ],
       "github": "https://github.com/danielalkabbout/WhatsApp-Chatbot",
       "live": "",
@@ -95,11 +65,49 @@
       "icon": "whatsapp",
       "image": "",
       "visible": true,
-      "home": true
+      "home": true,
+      "cvBullets": [
+        "Built a WhatsApp AI agent that answers questions about SharePoint documents, uploads files, and works with Outlook mail and calendar through Microsoft Graph API, including voice notes transcribed with Azure AI Speech.",
+        "Added leave-request and approval workflows with role-based permissions (employee, manager, HR), audit logging, multi-language replies (English, Arabic, French), rate limiting, retries, and health/readiness checks."
+      ],
+      "cv": true
+    },
+    {
+      "id": "portfolio",
+      "title": "Full-Stack Portfolio Platform",
+      "short": "Portfolio platform",
+      "kind": "Full-stack web app",
+      "tagline": "This website",
+      "summary": "This website: a React 19 frontend on Cloudflare Pages and an ASP.NET Core 10 API with PostgreSQL, with a private content studio and a CI/CD pipeline that tests every change before it goes live.",
+      "reel": "",
+      "features": [
+        "Content studio protected by a sign-in that never sends the password",
+        "ASP.NET Core 10 API with EF Core, PostgreSQL and FluentValidation, in Docker on Render",
+        "GitHub Actions pipeline: integration tests on a real PostgreSQL database, then deploys and production checks",
+        "AI CV assistant with a Google Gemini fallback"
+      ],
+      "tags": [
+        "ASP.NET Core 10",
+        "React",
+        "PostgreSQL",
+        "GitHub Actions"
+      ],
+      "github": "",
+      "live": "https://danielalkabbout.pages.dev",
+      "demo": "",
+      "icon": "web",
+      "image": "",
+      "visible": true,
+      "home": false,
+      "cv": true,
+      "cvBullets": [
+        "Built a portfolio site with a JWT-protected content studio: React 19 frontend on Cloudflare Pages and an ASP.NET Core 10 API with EF Core, PostgreSQL, and FluentValidation in Docker on Render.",
+        "Set up a GitHub Actions CI/CD pipeline that runs xUnit integration tests against a real PostgreSQL database, deploys only what changed, and runs production checks after each release; added an AI CV assistant with a Google Gemini fallback."
+      ]
     },
     {
       "id": "noise",
-      "title": "Live noise cancellation model",
+      "title": "Live Noise Cancellation Model",
       "short": "Noise cancellation",
       "kind": "Machine learning, audio",
       "tagline": "Machine learning",
@@ -112,10 +120,9 @@
       ],
       "tags": [
         "Python",
-        "CNN",
-        "UrbanSound8K",
-        "noisereduce",
-        "Microsoft Teams"
+        "PyTorch",
+        "Keras",
+        "FastAPI"
       ],
       "github": "https://github.com/danielalkabbout/Noise-cancellation-Model",
       "live": "",
@@ -123,11 +130,80 @@
       "icon": "noise",
       "image": "",
       "visible": true,
-      "home": true
+      "home": true,
+      "cvBullets": [
+        "Trained and evaluated a CNN on UrbanSound8K to classify 10 environmental noise types, then removed the top-3 detected noises with spectral gating using reference recordings; integrated the solution with Microsoft Teams.",
+        "Served the model through a FastAPI REST API (predict and denoise endpoints) with a React + Vite frontend."
+      ],
+      "cv": true
+    },
+    {
+      "id": "detector",
+      "title": "Apple and Banana Detection App",
+      "short": "Fruit detection app",
+      "kind": "Computer vision",
+      "tagline": "Computer vision",
+      "summary": "A Flask web app that runs a custom-trained YOLOv8s model on uploaded photos and draws labelled bounding boxes around each apple and banana.",
+      "reel": "A Flask web app running a custom-trained YOLOv8s model that boxes every apple and banana in a photo.",
+      "features": [
+        "Custom-trained YOLOv8s model for two classes: apple and banana",
+        "Upload a photo in the browser and get labelled bounding boxes back",
+        "Served as a Flask web app"
+      ],
+      "tags": [
+        "Python",
+        "YOLOv8s",
+        "PyTorch",
+        "Flask",
+        "Docker"
+      ],
+      "github": "https://github.com/danielalkabbout/Apple-Banana-Detector",
+      "live": "",
+      "demo": "detector",
+      "icon": "detector",
+      "image": "",
+      "visible": true,
+      "home": true,
+      "cvBullets": [
+        "Trained a custom YOLOv8s object-detection model on 240 labeled images and built a Dockerized Flask app, deployable to Render, that draws labeled bounding boxes on uploaded photos."
+      ],
+      "cv": true
+    },
+    {
+      "id": "todo",
+      "title": "Taskify Task Management API",
+      "short": "Taskify",
+      "kind": "Backend",
+      "tagline": "Backend",
+      "summary": "A task management REST API with JWT authentication and Admin, Manager and Employee roles, built with ASP.NET Core and Entity Framework Core on MySQL.",
+      "reel": "A backend API for creating, updating and tracking tasks, using Entity Framework Core with MySQL.",
+      "features": [
+        "JWT authentication with Admin, Manager and Employee roles",
+        "Task assignment, comments and notifications",
+        "Recurring tasks",
+        "Export to PDF, Excel and CSV"
+      ],
+      "tags": [
+        "C#",
+        "ASP.NET Core",
+        "EF Core",
+        "MySQL"
+      ],
+      "github": "https://github.com/danielalkabbout/Taskify",
+      "live": "",
+      "demo": "todo",
+      "icon": "todo",
+      "image": "",
+      "visible": true,
+      "home": true,
+      "cvBullets": [
+        "Built a REST API with JWT authentication and Admin, Manager, and Employee roles, covering task assignment, comments, notifications, recurring tasks, and PDF/Excel/CSV export."
+      ],
+      "cv": true
     },
     {
       "id": "booking",
-      "title": "WhatsApp appointment booking bot for doctors",
+      "title": "WhatsApp Appointment Booking Bot for Doctors",
       "short": "Appointment booking bot",
       "kind": "WhatsApp bot",
       "tagline": "WhatsApp",
@@ -149,61 +225,42 @@
       "icon": "booking",
       "image": "",
       "visible": true,
-      "home": true
+      "home": true,
+      "cvBullets": [
+        "Built a WhatsApp chatbot for booking medical appointments, with bookings stored in a SQL database."
+      ],
+      "cv": true
     },
     {
-      "id": "detector",
-      "title": "Apple and banana detection app",
-      "short": "Fruit detection app",
-      "kind": "Computer vision",
-      "tagline": "Computer vision",
-      "summary": "A Flask web app that runs a custom-trained YOLOv8s model on uploaded photos and draws labelled bounding boxes around each apple and banana.",
-      "reel": "A Flask web app running a custom-trained YOLOv8s model that boxes every apple and banana in a photo.",
+      "id": "sharepoint-ldap",
+      "title": "SharePoint On-Premises Data Retrieval with LDAP",
+      "short": "SharePoint + LDAP",
+      "kind": "Work project, .NET",
+      "tagline": "Work, .NET",
+      "summary": "An ASP.NET Core service built at work that connects to an LDAP server to retrieve data for SharePoint on-premises.",
+      "reel": "An ASP.NET Core service that connects to an LDAP server to retrieve data for SharePoint on-premises.",
       "features": [
-        "Custom-trained YOLOv8s model for two classes: apple and banana",
-        "Upload a photo in the browser and get labelled bounding boxes back",
-        "Served as a Flask web app"
-      ],
-      "tags": [
-        "Python",
-        "Flask",
-        "YOLOv8s",
-        "Object detection"
-      ],
-      "github": "https://github.com/danielalkabbout/Apple-Banana-Detector",
-      "live": "",
-      "demo": "detector",
-      "icon": "detector",
-      "image": "",
-      "visible": true,
-      "home": true
-    },
-    {
-      "id": "todo",
-      "title": "To-do REST API",
-      "short": "To-do REST API",
-      "kind": "Backend",
-      "tagline": "Backend",
-      "summary": "A backend API for creating, updating and tracking tasks, built with ASP.NET Core and Entity Framework Core on a MySQL database.",
-      "reel": "A backend API for creating, updating and tracking tasks, using Entity Framework Core with MySQL.",
-      "features": [
-        "Create, update and track tasks over REST",
-        "Entity Framework Core for data access",
-        "MySQL database"
+        "Built with ASP.NET Core and C#",
+        "Connects to the organization's LDAP server to retrieve directory data",
+        "Makes that data available to SharePoint on-premises",
+        "Built for a real workplace, as part of my job"
       ],
       "tags": [
         "C#",
         "ASP.NET Core",
-        "Entity Framework Core",
-        "MySQL"
+        "LDAP"
       ],
-      "github": "https://github.com/danielalkabbout/Taskify",
+      "github": "",
       "live": "",
-      "demo": "todo",
-      "icon": "todo",
+      "demo": "ldap",
+      "icon": "data",
       "image": "",
       "visible": true,
-      "home": true
+      "home": true,
+      "cvBullets": [
+        "Developed an ASP.NET Core service to retrieve LDAP directory data for a SharePoint on-premises environment."
+      ],
+      "cv": true
     }
   ],
   "experience": [
@@ -226,11 +283,13 @@
         ]
       ],
       "bullets": [
-        "Lead a team of three developers: I split the work, set the technical approach for each project, and review what goes out to clients.",
-        "Built two Copilot Studio agents that answer staff questions from SharePoint documents and SQL Server data, deployed in Microsoft Teams.",
-        "Built a WhatsApp bot for The Net Holding on the WhatsApp Cloud API and handled their Meta Business Verification, including fixing rejected documents and verifying the domain.",
-        "Currently adding AI features to an enterprise social media product using Azure OpenAI.",
-        "Meet with clients to scope each agent before we build it: what data it can access, who uses it, and what it should not do."
+        "Lead a three-developer team: plan and assign work, review code, gather client requirements, and coordinate delivery of enterprise AI solutions.",
+        "Design and build the C#/.NET REST API layer of an AI-enabled social media management platform, including registration, login, password reset, and JWT authentication.",
+        "Develop Azure OpenAI features that turn social media and competitor data into account insights, best-time-to-post recommendations, and competitor analysis.",
+        "Enforce per-account data isolation by scoping every SQL query to the authenticated account and adding AI guardrails, so accounts in the same organization never see each other’s data.",
+        "Build SQL Server-backed endpoints on existing stored procedures and adapt database tables for AI integration without breaking current application logic.",
+        "Configured and published two SharePoint-grounded Copilot Studio agents to Microsoft 365 Copilot, Microsoft Teams, and SharePoint, giving staff self-service answers from company documents.",
+        "Built a WhatsApp Cloud API bot for The Net Holding and resolved Meta Business Verification rejections and domain verification (Cloudflare DNS) needed to run it on a verified business account."
       ],
       "tags": [
         "Copilot Studio",
@@ -273,10 +332,10 @@
         ]
       ],
       "bullets": [
-        "Developed 12 SPFx web parts in React and TypeScript, 8 for SharePoint Online and 4 for on-premises SharePoint.",
-        "Built around 10 Power Automate flows and Power Apps forms on top of SharePoint lists, mostly for approvals and requests that used to go through email.",
-        "Worked on backend features for internal and client applications in C#, ASP.NET MVC and SQL Server.",
-        "Ran 12 Microsoft Copilot training sessions for managers and staff at AFC, AFC Live and Aïshti."
+        "Developed 12 React/TypeScript SPFx web parts: eight for SharePoint Online and four for SharePoint on-premises.",
+        "Built approximately 10 Power Automate flows and Power Apps forms that moved approvals and requests onto SharePoint.",
+        "Developed backend features for internal and client applications using C#, ASP.NET MVC, and SQL Server.",
+        "Delivered 12 Microsoft Copilot training sessions for managers and staff at AFC, AFC Live, and Aïshti."
       ],
       "tags": [
         "SPFx",
@@ -300,8 +359,7 @@
       "type": "Internship",
       "metrics": [],
       "bullets": [
-        "Set up and customized SharePoint sites for document management and team collaboration.",
-        "Built my first Power Automate flows to replace repetitive manual steps."
+        "Configured SharePoint sites for document management and collaboration, and built Power Automate flows to replace repetitive manual processes."
       ],
       "tags": [
         "SharePoint",
@@ -319,8 +377,7 @@
       "type": "Part-time internship",
       "metrics": [],
       "bullets": [
-        "Designed the vendor dashboard for a multi-vendor e-commerce site (sales, orders, inventory).",
-        "Built the vendor shop pages."
+        "Designed a vendor dashboard (sales, orders, inventory) and vendor storefront pages for a multi-vendor e-commerce platform."
       ],
       "tags": [
         "Front-end",
@@ -338,8 +395,7 @@
       "type": "Internship",
       "metrics": [],
       "bullets": [
-        "Built REST APIs in Spring Boot with Hibernate/JPA.",
-        "Added login and role-based access with Spring Security, JWT and OAuth2, and configured CORS and CSRF."
+        "Developed Spring Boot REST APIs with Hibernate/JPA, with login and role-based access using Spring Security, JWT, and OAuth 2.0."
       ],
       "tags": [
         "Java",
@@ -364,25 +420,19 @@
       "name": "AI and machine learning",
       "desc": "Where most of my time goes: agents grounded in company data, and the models behind them.",
       "items": [
-        "Generative AI",
-        "LLMs",
-        "AI agents",
-        "RAG",
-        "Azure OpenAI",
+        "Azure OpenAI (GPT-4o mini, o4-mini)",
         "Azure AI Foundry",
         "Copilot Studio",
-        "GPT-4o mini",
-        "Azure AI Speech",
+        "LLM integration",
+        "RAG",
         "Prompt engineering",
-        "Embeddings",
-        "Vector search",
-        "Machine learning",
-        "Deep learning",
-        "CNNs",
-        "Computer vision",
-        "Object detection",
+        "Google Gemini API",
+        "Azure AI Speech",
+        "PyTorch",
+        "Keras",
+        "CNN",
         "YOLOv8",
-        "NLP"
+        "Computer vision"
       ]
     },
     {
@@ -390,13 +440,11 @@
       "desc": "",
       "items": [
         "C#",
-        "Java",
         "Python",
         "TypeScript",
         "JavaScript",
+        "Java",
         "SQL",
-        "React",
-        "React Native",
         "HTML",
         "CSS"
       ]
@@ -408,60 +456,62 @@
         ".NET",
         "ASP.NET Core",
         "ASP.NET MVC",
-        "Web API",
-        "Spring Boot",
-        "Spring Framework",
-        "Hibernate",
-        "JPA",
-        "EF Core",
+        "Entity Framework Core",
+        "REST API design",
+        "FastAPI",
         "Flask",
         "Node.js",
-        "REST APIs",
-        "Microservices",
-        "Webhooks",
-        "API integration"
+        "Express",
+        "Spring Boot",
+        "Hibernate/JPA"
       ]
     },
     {
-      "name": "Microsoft and integrations",
+      "name": "Frontend",
       "desc": "",
       "items": [
-        "WhatsApp Cloud API",
-        "Meta Graph API",
+        "React",
+        "TypeScript",
+        "Vite",
+        "SharePoint Framework (SPFx)"
+      ]
+    },
+    {
+      "name": "Microsoft 365 and integrations",
+      "desc": "",
+      "items": [
         "Microsoft Graph API",
-        "Microsoft 365",
-        "SharePoint Online",
-        "SharePoint On-Premises",
-        "SPFx",
+        "SharePoint Online and On-Premises",
         "Microsoft Teams",
         "Power Automate",
         "Power Apps",
-        "Power Platform"
+        "WhatsApp Cloud API",
+        "Meta Graph API",
+        "LDAP"
       ]
     },
     {
       "name": "Security",
       "desc": "",
       "items": [
-        "Authentication",
-        "Authorization",
         "JWT",
         "OAuth 2.0",
+        "ASP.NET Core Identity",
         "Spring Security",
-        "RBAC",
+        "Role-based access control (RBAC)",
+        "Rate limiting",
         "CORS",
         "CSRF"
       ]
     },
     {
-      "name": "Data",
+      "name": "Databases",
       "desc": "",
       "items": [
-        "SQL Server",
+        "Microsoft SQL Server (T-SQL, stored procedures)",
+        "PostgreSQL",
         "MySQL",
-        "Relational databases",
-        "MongoDB",
-        "NoSQL"
+        "MongoDB"
       ]
     },
     {
@@ -470,20 +520,19 @@
       "items": [
         "Microsoft Azure",
         "Azure DevOps",
-        "CI/CD pipelines",
+        "GitHub Actions",
+        "CI/CD",
         "Docker",
-        "Git",
-        "GitHub"
+        "Git"
       ]
     },
     {
-      "name": "Practices",
+      "name": "Testing and practices",
       "desc": "",
       "items": [
-        "OOP",
-        "SDLC",
+        "xUnit",
+        "Integration testing",
         "Code review",
-        "Technical leadership",
         "Requirements gathering"
       ]
     }
@@ -565,19 +614,7 @@
       "detail": "Zaka, 2025. Data Science, Deep Learning, Computer Vision, NLP, ML in Production"
     },
     {
-      "title": "Master Spring Boot 3 and Spring Framework 6",
-      "detail": "Udemy"
-    },
-    {
       "title": "Spring Security with JWT and OAuth2",
-      "detail": "Udemy"
-    },
-    {
-      "title": "Mastering SPFx Development using React and Node.js",
-      "detail": "Udemy"
-    },
-    {
-      "title": "Complete Guide to Microsoft SharePoint Online",
       "detail": "Udemy"
     }
   ],
@@ -600,5 +637,58 @@
       "title": "Equipe Missionaire de Nazareth, Lebanon",
       "detail": "2020: helped distribute food to more than 500 families after the Beirut port explosion"
     }
-  ]
+  ],
+  "cv": {
+    "headline": [
+      "AI Software Engineer (C#/.NET)"
+    ],
+    "summary": "AI Software Engineer and Technical Lead building LLM-powered features and C#/.NET backends on Microsoft Azure. Lead a three-developer team delivering Azure OpenAI insights, JWT-secured ASP.NET Core REST APIs, and SQL Server integrations for an AI-enabled social media platform, plus Copilot Studio agents and WhatsApp AI assistants connected to Microsoft 365 through Microsoft Graph. Hands-on with RAG, PyTorch/Keras model training, Docker, and CI/CD.",
+    "location": "Lebanon",
+    "availability": "Open to relocation",
+    "showWebsite": true,
+    "projectStyle": "summary",
+    "sections": [
+      {
+        "key": "summary",
+        "title": "Summary",
+        "visible": true
+      },
+      {
+        "key": "skills",
+        "title": "Skills",
+        "visible": true
+      },
+      {
+        "key": "experience",
+        "title": "Work Experience",
+        "visible": true
+      },
+      {
+        "key": "projects",
+        "title": "Projects",
+        "visible": true
+      },
+      {
+        "key": "education",
+        "title": "Education",
+        "visible": true
+      },
+      {
+        "key": "certifications",
+        "title": "Certifications",
+        "visible": true
+      },
+      {
+        "key": "languages",
+        "title": "Languages",
+        "visible": true
+      },
+      {
+        "key": "volunteering",
+        "title": "Volunteer Experience",
+        "visible": false
+      }
+    ]
+  },
+  "pages": {}
 }

@@ -111,7 +111,12 @@ export function buildCv(site: SiteContent, siteHost = ''): Cv {
     }),
     projects: () => ({
       entries: projects.map((x) => ({
-        head: joined([{ t: x.title, b: true }, x.tags.join(', ')]),
+        // Ends with the code or the live site, as on the Word CV.
+        head: joined([
+          { t: x.title, b: true },
+          x.tags.join(', '),
+          (x.github || x.live) && { t: strip(x.github || x.live), href: x.github || x.live },
+        ]),
         bullets: projectBullets(x),
       })),
     }),

@@ -18,8 +18,14 @@ describe('CV model', () => {
       'Education',
       'Certifications',
       'Languages',
-      'Volunteer Experience',
     ]);
+  });
+
+  it('ends each project heading with its code or live link', () => {
+    const linked = fallbackContent.projects.filter((p) => p.visible && p.cv && (p.github || p.live));
+    const heads = section('Projects').entries!.map((e) => e.head);
+    expect(heads.filter((h) => h[h.length - 1].href)).toHaveLength(linked.length);
+    expect(text(heads[0])).toContain('github.com/danielalkabbout/');
   });
 
   it('writes roles like the Word CV', () => {
@@ -33,7 +39,7 @@ describe('CV model', () => {
 
   it('includes every visible project and picks up new ones', () => {
     const site = clone(fallbackContent);
-    site.projects.push({ ...site.projects[0], id: 'new', title: 'New project', tags: ['Go'], visible: true });
+    site.projects.push({ ...site.projects[0], id: 'new', title: 'New project', tags: ['Go'], github: '', live: '', visible: true });
     site.projects.push({ ...site.projects[0], id: 'off', title: 'Hidden project', visible: false });
     const heads = buildCv(site)
       .sections.find((s) => s.title === 'Projects')!
@@ -44,8 +50,7 @@ describe('CV model', () => {
   });
 
   it('builds the summary and contact lines from the profile', () => {
-    expect(text(section('Summary').lines![0])).toContain('a team of three');
-    expect(text(section('Summary').lines![0])).toContain('BSc in Computer Science, Antonine University (2026).');
+    expect(text(section('Summary').lines![0])).toContain('three-developer team');
     expect(text(cv.contact[0])).toContain(fallbackContent.profile.email);
     expect(cv.contact[1].some((r) => r.href === fallbackContent.profile.linkedin)).toBe(true);
   });
@@ -89,8 +94,8 @@ describe('CV settings from the studio', () => {
     site.cv.summary = '  ';
     site.cv.headline = [];
     const fallback = buildCv(site);
-    expect(text(fallback.headline)).toBe('AI Software Engineer | Backend Developer');
-    expect(text(fallback.sections.find((s) => s.key === 'summary')!.lines![0])).toContain('Software engineer');
+    expect(text(fallback.headline)).toBe('AI Software Engineer (C#/.NET)');
+    expect(text(fallback.sections.find((s) => s.key === 'summary')!.lines![0])).toContain('AI Software Engineer and Technical Lead');
   });
 
   it('leaves out projects and roles switched off for the CV', () => {
@@ -107,6 +112,7 @@ describe('CV settings from the studio', () => {
   it('describes projects by style, unless a project has its own CV bullets', () => {
     const site = clone(fallbackContent);
     const id = site.projects[1].id;
+    site.projects[1].cvBullets = [];
     site.cv.projectStyle = 'features';
     expect(projectBullets(site, id)).toEqual(site.projects[1].features);
     site.cv.projectStyle = 'both';
