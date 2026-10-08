@@ -16,22 +16,10 @@ using Scalar.AspNetCore;
 // One-off commands, run with: dotnet run --project src/Portfolio.Api -- <command>
 //   migrate        apply database migrations, then seed if the database is empty
 //   seed           import SeedData/content-seed.json into an empty database
-//   create-admin   create the studio account in the database, or reset its password
-//   hash-password  turn your admin password into the hash for Admin:PasswordHash
+//   create-admin   create the studio account in the database, or reset its password (stored as an SRP verifier)
 //   new-jwt-key    print a random key for Jwt:Key
-var command = args.FirstOrDefault(a => a is "migrate" or "seed" or "create-admin" or "hash-password" or "new-jwt-key");
+var command = args.FirstOrDefault(a => a is "migrate" or "seed" or "create-admin" or "new-jwt-key");
 
-if (command == "hash-password")
-{
-    Console.Write("Admin password (at least 12 characters): ");
-    var password = ReadHidden();
-    if (password.Length < 12) { Console.WriteLine("Too short. Use at least 12 characters."); return; }
-    Console.Write("Repeat it: ");
-    if (ReadHidden() != password) { Console.WriteLine("The two passwords don't match."); return; }
-    Console.WriteLine();
-    Console.WriteLine(AuthController.HashPassword(password));
-    return;
-}
 if (command == "new-jwt-key")
 {
     Console.WriteLine(Convert.ToBase64String(RandomNumberGenerator.GetBytes(48)));
@@ -47,7 +35,6 @@ if (Environment.GetEnvironmentVariable("PORT") is { Length: > 0 } port)
 builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Default"));
 
 // Settings
-builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.Section));
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection(GeminiOptions.Section));
 builder.Services.Configure<TurnstileOptions>(builder.Configuration.GetSection(TurnstileOptions.Section));
 builder.Services.Configure<R2Options>(builder.Configuration.GetSection(R2Options.Section));

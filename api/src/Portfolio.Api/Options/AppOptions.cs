@@ -1,18 +1,6 @@
 namespace Portfolio.Api.Options;
 
 /// <summary>
-/// Optional first-run login. When the database has no admin account yet, the first sign-in with these
-/// values creates it in the database; after that the database is the only source of truth.
-/// PasswordHash comes from: dotnet run --project src/Portfolio.Api -- hash-password
-/// </summary>
-public sealed class AdminOptions
-{
-    public const string Section = "Admin";
-    public string Email { get; set; } = "";
-    public string PasswordHash { get; set; } = "";
-}
-
-/// <summary>
 /// Shared secret between the website's /api proxy (Cloudflare Pages Function, EDGE_KEY) and the API.
 /// When set, only the proxy can sign in, edit content or send requests; direct calls can only read public content.
 /// </summary>

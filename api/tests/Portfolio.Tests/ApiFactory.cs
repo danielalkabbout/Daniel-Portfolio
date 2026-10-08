@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Portfolio.Api.Controllers;
 using Portfolio.Infrastructure.Persistence;
 
 namespace Portfolio.Tests;
@@ -34,8 +33,6 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         // Program.cs reads these while starting up, so they are set as environment variables.
         Environment.SetEnvironmentVariable("ConnectionStrings__Default", connectionString);
-        Environment.SetEnvironmentVariable("Admin__Email", AdminEmail);
-        Environment.SetEnvironmentVariable("Admin__PasswordHash", AuthController.HashPassword(AdminPassword));
         Environment.SetEnvironmentVariable("Jwt__Key", new string('k', 48));
         // The tests sign in more often than a person would.
         Environment.SetEnvironmentVariable("RateLimits__Strict", "50");
@@ -47,8 +44,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public async Task<string> AdminTokenAsync()
     {
         if (adminToken is not null) return adminToken;
-        var login = await CreateClient().PostAsJsonAsync("/api/auth/login",
-            new Portfolio.Api.Contracts.LoginRequest(AdminEmail, AdminPassword));
+        var login = await SrpClient.LoginAsync(CreateClient(), AdminEmail, AdminPassword);
         login.EnsureSuccessStatusCode();
         return adminToken = SessionToken(login);
     }
@@ -78,7 +74,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await db.Database.MigrateAsync();
         var seeder = scope.ServiceProvider.GetRequiredService<ContentSeeder>();
         await seeder.SeedAsync(TestPaths.SeedFile());
-        // The first sign-in copies the configured admin into the database, before other tests add accounts.
+        // The studio account, created the way the create-admin command does it.
+        await scope.ServiceProvider.GetRequiredService<Portfolio.Api.Services.AdminAccounts>().UpsertAsync(AdminEmail, AdminPassword);
         await AdminTokenAsync();
     }
 

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import { api } from '../../api/client';
+import { api, ApiError } from '../../api/client';
 import { store } from '../../lib/env';
+import { loginId, prove, register, type Challenge } from './srp';
 
 /**
  * The studio session is an HttpOnly cookie set by the API: page scripts can't read it, so it can't be
@@ -63,8 +64,22 @@ export async function checkSession(): Promise<Session | null> {
   }
 }
 
+const challenge = async (email: string) =>
+  api<Challenge>('/api/auth/challenge', { method: 'POST', body: { id: await loginId(email) } });
+
+/**
+ * Signs in with SRP: the request carries a fingerprint of the email and a one-time proof, never the
+ * email or the password. The server's own proof (m2) is checked too, so a fake server can't pretend.
+ */
 export async function login(email: string, password: string) {
-  save(await api<Session>('/api/auth/login', { method: 'POST', body: { email, password } }));
+  const c = await challenge(email);
+  const p = await prove(email, password, c);
+  const res = await api<Session & { m2: string }>('/api/auth/login', {
+    method: 'POST',
+    body: { challengeId: c.challengeId, a: p.a, m1: p.m1 },
+  });
+  if (res.m2 !== p.m2) throw new ApiError(0, 'The server could not prove who it is. Sign-in stopped.');
+  save({ email: res.email, expiresAt: res.expiresAt });
 }
 
 /** Forgets the session here at once, and asks the API to delete the cookie. */
@@ -73,12 +88,20 @@ export function logout() {
   void api('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
 }
 
-/** Changes the studio password. The API ends other sessions and gives this one a fresh cookie. */
+/**
+ * Changes the studio password. The current one is proved with SRP and the new one becomes a salt and
+ * verifier here in the browser, so neither password is sent. The API ends other sessions and gives this
+ * one a fresh cookie.
+ */
 export async function changePassword(currentPassword: string, newPassword: string) {
+  const email = current?.email ?? (await checkSession())?.email;
+  if (!email) throw new ApiError(401, 'Your session ended. Sign in again.');
+  const c = await challenge(email);
+  const [p, next] = await Promise.all([prove(email, currentPassword, c), register(email, newPassword, c.iterations)]);
   save(
     await api<Session>('/api/auth/change-password', {
       method: 'POST',
-      body: { currentPassword, newPassword },
+      body: { challengeId: c.challengeId, a: p.a, m1: p.m1, salt: next.salt, verifier: next.verifier },
     }),
   );
 }

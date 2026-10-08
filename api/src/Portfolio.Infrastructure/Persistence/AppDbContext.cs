@@ -119,7 +119,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             e.HasIndex(x => x.Email).IsUnique();
             e.Property(x => x.Email).HasMaxLength(200);
-            e.Property(x => x.PasswordHash).HasMaxLength(500);
+            e.Property(x => x.SrpSalt).HasMaxLength(64);
+            e.Property(x => x.SrpVerifier).HasMaxLength(600);
             e.Property(x => x.SecurityStamp).HasMaxLength(64);
         });
     }
