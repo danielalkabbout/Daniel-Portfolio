@@ -29,13 +29,12 @@ export const CV_SECTION_TITLES: Record<CvSectionKey, string> = {
 };
 
 export const DEFAULT_CV: CvSettings = {
-  headline: ['AI Software Engineer', 'Backend Developer'],
+  headline: ['AI Software Engineer (C#/.NET)'],
   summary:
-    'Software engineer working on generative AI and backend systems. At SoftFlow Group I lead a team of three that ' +
-    'builds AI agents with Azure OpenAI, Azure AI Foundry and Copilot Studio, using RAG over SharePoint and SQL ' +
-    'Server data and deploying them in Microsoft Teams and WhatsApp. On the backend side I work with C#/.NET ' +
-    '(ASP.NET Core, MVC), Java (Spring Boot) and Python: REST APIs, microservices, JWT/OAuth 2.0, Docker, and CI/CD ' +
-    'pipelines in Azure DevOps. BSc in Computer Science, Antonine University (2026). Open to relocating.',
+    'AI Software Engineer and Technical Lead building LLM-powered features and C#/.NET backends on Microsoft Azure. ' +
+    'Lead a three-developer team delivering Azure OpenAI insights, JWT-secured ASP.NET Core REST APIs, and SQL Server ' +
+    'integrations for an AI-enabled social media platform, plus Copilot Studio agents and WhatsApp AI assistants ' +
+    'connected to Microsoft 365 through Microsoft Graph. Hands-on with RAG, PyTorch/Keras model training, Docker, and CI/CD.',
   location: 'Lebanon',
   availability: 'Open to relocation',
   showWebsite: true,
