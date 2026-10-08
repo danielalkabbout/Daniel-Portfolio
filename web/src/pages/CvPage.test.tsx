@@ -26,6 +26,6 @@ describe('CV page', () => {
     const text = container.textContent ?? '';
     for (const p of site.projects.filter((x) => x.visible)) expect(text).toContain(p.title);
     expect(text).not.toContain('Hidden project');
-    expect(getByRole('button', { name: 'Download PDF' })).toBeTruthy();
+    expect(getByRole('button', { name: /Download PDF/ })).toBeTruthy();
   });
 });
