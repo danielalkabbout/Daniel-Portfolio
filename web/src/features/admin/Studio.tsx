@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { api, ApiError } from '../../api/client';
@@ -9,6 +9,9 @@ import { logout } from './auth';
 import { Drawer } from './Drawer';
 import { ActivityView, RequestsView, useRequests } from './RequestsView';
 import { AccountView } from './AccountView';
+import { CvView } from './CvView';
+import { PagesView } from './PagesView';
+import { withDefaults } from '../../content/defaults';
 import { Ic, useUi } from './ui';
 import { changedSections, clone, LABEL, StudioCtx, type DrawerSpec, type StudioApi, type Tab } from './studio-state';
 import {
@@ -37,7 +40,8 @@ function savedDraft(initial: SiteContent) {
   try {
     const saved = JSON.parse(store('local').get(DRAFT_KEY) ?? 'null') as { t: number; d: unknown } | null;
     const parsed = saved && siteContentSchema.safeParse(saved.d);
-    if (saved && parsed?.success && strip(parsed.data) !== strip(initial)) return { t: saved.t, d: parsed.data };
+    if (saved && parsed?.success && strip(withDefaults(parsed.data)) !== strip(initial))
+      return { t: saved.t, d: withDefaults(parsed.data) };
   } catch {
     /* ignore a broken draft */
   }
@@ -45,8 +49,10 @@ function savedDraft(initial: SiteContent) {
 }
 
 /** The editor once signed in: tabs on the left, the current view, and the publish bar. */
-export function Studio({ initial }: { initial: SiteContent }) {
+export function Studio({ initial: raw }: { initial: SiteContent }) {
   const { toast, ask } = useUi();
+  // Every CV and page-text field starts filled in, so you edit the real wording, not a blank box.
+  const [initial] = useState(() => withDefaults(raw));
   const qc = useQueryClient();
   const [base, setBase] = useState(initial);
   const [d, setD] = useState(initial);
@@ -167,7 +173,7 @@ export function Studio({ initial }: { initial: SiteContent }) {
         body: d,
         timeoutMs: 90000,
       });
-      const saved = siteContentSchema.parse(res.content);
+      const saved = withDefaults(siteContentSchema.parse(res.content));
       setBase(saved);
       setD(saved);
       store('local').remove(DRAFT_KEY);
@@ -216,6 +222,8 @@ export function Studio({ initial }: { initial: SiteContent }) {
     services: ['services'],
     profile: ['profile', 'highlights'],
     about: ['education', 'certifications', 'languages', 'volunteering', 'clients'],
+    cv: ['cv'],
+    pages: ['pages'],
   };
   const counts: Partial<Record<Tab, number | null>> = {
     projects: d.projects.length,
@@ -237,6 +245,8 @@ export function Studio({ initial }: { initial: SiteContent }) {
     data: DataView,
     activity: ActivityView,
     account: AccountView,
+    cv: CvView,
+    pages: PagesView,
   }[tab];
 
   return (
@@ -253,16 +263,19 @@ export function Studio({ initial }: { initial: SiteContent }) {
             </div>
           </div>
           <nav className="adm-tabs">
-            {TABS.map(([k, label, icon]) => {
+            {TABS.map(([k, label, icon, group], i) => {
               const changed = tabMap[k]?.some((x) => (ch as readonly string[]).includes(x));
               const n = counts[k];
               return (
-                <button key={k} type="button" className={k === tab ? 'on' : undefined} onClick={() => show(k)}>
-                  <Ic n={icon} />
-                  <span>{label}</span>
-                  {changed && <i className="adm-chg" title="Unpublished changes" />}
-                  {n != null && (k !== 'requests' || n > 0) && <em>{n}</em>}
-                </button>
+                <Fragment key={k}>
+                  {(i === 0 || TABS[i - 1][3] !== group) && <span className="adm-tabgroup">{group}</span>}
+                  <button type="button" className={k === tab ? 'on' : undefined} onClick={() => show(k)}>
+                    <Ic n={icon} />
+                    <span>{label}</span>
+                    {changed && <i className="adm-chg" title="Unpublished changes" />}
+                    {n != null && (k !== 'requests' || n > 0) && <em>{n}</em>}
+                  </button>
+                </Fragment>
               );
             })}
           </nav>

@@ -43,7 +43,7 @@ export function CvSheet({ cv, sheetRef }: { cv: Cv; sheetRef?: Ref<HTMLElement> 
       </header>
 
       {cv.sections.map((s) => (
-        <section key={s.key} id={cvSlug(s.title)} data-title={s.title}>
+        <section key={s.key} id={cvSlug(s.title)} data-title={s.title} data-key={s.key}>
           <h3>{s.title}</h3>
           {s.lines?.map((l, i) => (
             <p key={i} className={s.key === 'skills' ? 'cv-skill' : 'cv-para'}>

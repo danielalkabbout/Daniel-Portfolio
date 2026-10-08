@@ -75,7 +75,16 @@ export const profileSchema = z.object({
 });
 
 export const cvSectionSchema = z.object({
-  key: z.enum(['summary', 'skills', 'experience', 'projects', 'education', 'certifications', 'languages', 'volunteering']),
+  key: z.enum([
+    'summary',
+    'skills',
+    'experience',
+    'projects',
+    'education',
+    'certifications',
+    'languages',
+    'volunteering',
+  ]),
   title: z.string().default(''),
   visible: z.boolean().default(true),
 });

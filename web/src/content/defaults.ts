@@ -123,7 +123,7 @@ export const DEFAULT_PAGES: Pages = {
   }),
 };
 
-const filled = <T,>(v: T, fallback: T): T =>
+const filled = <T>(v: T, fallback: T): T =>
   (Array.isArray(v) ? v.length > 0 : typeof v === 'string' ? v.trim() !== '' : v != null) ? v : fallback;
 
 /** A page's text with every empty field replaced by the built-in default. */

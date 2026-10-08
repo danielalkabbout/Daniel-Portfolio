@@ -23,6 +23,8 @@ export type Tab =
   | 'services'
   | 'profile'
   | 'about'
+  | 'cv'
+  | 'pages'
   | 'data'
   | 'activity'
   | 'account';
@@ -52,6 +54,8 @@ export const SECTIONS = [
   'certifications',
   'languages',
   'volunteering',
+  'cv',
+  'pages',
 ] as const;
 export const LABEL: Record<(typeof SECTIONS)[number], string> = {
   profile: 'Profile',
@@ -65,6 +69,8 @@ export const LABEL: Record<(typeof SECTIONS)[number], string> = {
   certifications: 'Certifications',
   languages: 'Languages',
   volunteering: 'Volunteering',
+  cv: 'CV',
+  pages: 'Page text',
 };
 
 export function changedSections(d: SiteContent, base: SiteContent) {
