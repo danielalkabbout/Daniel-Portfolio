@@ -7,21 +7,10 @@ import { NetCanvas } from '../features/home/NetCanvas';
 import { useHomeScroll } from '../features/home/useHomeScroll';
 import { ArrowRight, Icon } from '../lib/icons';
 import { reduceMotion } from '../lib/env';
+import { pageText } from '../content/defaults';
 
-const STRIP = [
-  'Microsoft Teams',
-  'WhatsApp',
-  'SharePoint',
-  'Outlook',
-  'Websites',
-  'Mobile apps',
-  'Copilot Studio',
-  'Azure AI Foundry',
-];
 const MARQ1 = ['AI agents', 'WhatsApp bots', 'Websites', 'Mobile apps', 'SharePoint', 'Backend APIs'];
 const MARQ2 = ['Azure OpenAI', 'Copilot Studio', 'Microsoft Teams', 'C# and .NET', 'Spring Boot', 'React'];
-const MANIFESTO =
-  "The best technology disappears into the way people already work. That's why I build AI agents, WhatsApp bots, web apps and mobile apps that meet people where they are. And every project starts the same way: agreeing on what it should do, and what it should never do.";
 const KEY_WORD = /^(disappears|AI|agents,?|WhatsApp|bots,?|web|mobile|apps|never)/;
 const REEL_COLORS: [string, string][] = [
   ['sky', 'mint'],
@@ -120,6 +109,7 @@ function useCounters(ref: React.RefObject<HTMLElement | null>) {
 
 export default function HomePage() {
   const site = useSite();
+  const text = pageText(site, 'home');
   const p = site.profile;
   const heroRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -189,7 +179,7 @@ export default function HomePage() {
               <div className="strip-track">
                 {[0, 1].map((copy) => (
                   <ul key={copy} aria-hidden={copy === 1 || undefined}>
-                    {STRIP.flatMap((s) => [
+                    {text.items.flatMap((s) => [
                       <li key={s}>{s}</li>,
                       <li key={`${s}-dot`} className="dot" aria-hidden="true">
                         ✦
@@ -206,7 +196,7 @@ export default function HomePage() {
           <div className="mani-in">
             <div className="wrap">
               <p className="mani-text" id="maniText">
-                {MANIFESTO.split(' ').map((w, i) => (
+                {text.lead.split(' ').map((w, i) => (
                   <Fragment key={i}>
                     <span className={KEY_WORD.test(w) ? 'w key' : 'w'}>{w}</span>{' '}
                   </Fragment>

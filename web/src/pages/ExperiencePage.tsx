@@ -5,6 +5,7 @@ import { useSite } from '../api/content';
 import { clamp01, reduceMotion, smooth } from '../lib/env';
 import { duration, fmtMonth, monthIndex, MONTHS, ym } from '../lib/dates';
 import type { Experience } from '../types/content';
+import { pageText } from '../content/defaults';
 
 const ORG_COLORS = ['sky', 'sun', 'mint'];
 
@@ -286,6 +287,7 @@ function Timeline({ items }: { items: Role[] }) {
 
 export default function ExperiencePage() {
   const site = useSite();
+  const text = pageText(site, 'experience');
   const tl = useTimeline(site);
   const months = tl.first ? monthIndex(null) - monthIndex(tl.first) + 1 : 0;
   const [fy, fm] = (tl.first || '2024-02').split('-');
@@ -299,8 +301,8 @@ export default function ExperiencePage() {
           <i />
         </div>
         <div className="wrap">
-          <p className="title-line">Experience</p>
-          <h1 tabIndex={-1}>From a Spring Boot internship to leading an AI team.</h1>
+          {text.kicker && <p className="title-line">{text.kicker}</p>}
+          <h1 tabIndex={-1}>{text.title}</h1>
           <p>
             {tl.roles.length} roles at {tl.orgs.length} {tl.orgs.length === 1 ? 'company' : 'companies'} since{' '}
             {MONTHS[Number(fm) - 1]} {fy}.

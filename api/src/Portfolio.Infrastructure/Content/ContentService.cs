@@ -11,8 +11,10 @@ public class ContentService(AppDbContext db)
     public static readonly string[] Sections =
     [
         "profile", "highlights", "projects", "experience", "clients", "skills", "services",
-        "education", "certifications", "languages", "volunteering"
+        "education", "certifications", "languages", "volunteering", "cv", "pages"
     ];
+
+    private static readonly JsonSerializerOptions Json = JsonSerializerOptions.Web;
 
     /// <summary>Returns null when the database has no content yet (not seeded).</summary>
     public async Task<SiteContentDto?> GetAsync(CancellationToken ct = default)
@@ -26,6 +28,7 @@ public class ContentService(AppDbContext db)
         var skills = await db.SkillCategories.AsNoTracking().OrderBy(x => x.SortOrder).ToListAsync(ct);
         var services = await db.Services.AsNoTracking().OrderBy(x => x.SortOrder).ToListAsync(ct);
         var about = await db.AboutItems.AsNoTracking().OrderBy(x => x.SortOrder).ToListAsync(ct);
+        var docs = await db.ContentDocuments.AsNoTracking().ToDictionaryAsync(x => x.Key, ct);
 
         var stamps = new List<DateTime> { profile.UpdatedAt };
         stamps.AddRange(highlights.Select(x => x.UpdatedAt));
@@ -34,6 +37,10 @@ public class ContentService(AppDbContext db)
         stamps.AddRange(skills.Select(x => x.UpdatedAt));
         stamps.AddRange(services.Select(x => x.UpdatedAt));
         stamps.AddRange(about.Select(x => x.UpdatedAt));
+        stamps.AddRange(docs.Values.Select(x => x.UpdatedAt));
+
+        T Doc<T>(string key) where T : new() =>
+            docs.TryGetValue(key, out var d) ? JsonSerializer.Deserialize<T>(d.Json, Json) ?? new T() : new T();
 
         List<TextItemDto> AboutOf(AboutItemType type) => about
             .Where(a => a.Type == type)
@@ -78,6 +85,8 @@ public class ContentService(AppDbContext db)
                 Image = p.ImageUrl,
                 Visible = p.IsVisible,
                 Home = p.ShowOnHome,
+                Cv = !p.HideFromCv,
+                CvBullets = p.CvBullets,
             }).ToList(),
             Experience = experiences.Select(e => new ExperienceDto
             {
@@ -92,6 +101,7 @@ public class ContentService(AppDbContext db)
                 Bullets = e.Bullets,
                 Tags = e.Tags,
                 Milestone = e.IsMilestone,
+                Cv = !e.HideFromCv,
             }).ToList(),
             Clients = about.Where(a => a.Type == AboutItemType.Client).Select(a => a.Title).ToList(),
             Skills = skills.Select(s => new SkillCategoryDto { Name = s.Name, Desc = s.Description, Items = s.Items }).ToList(),
@@ -109,6 +119,8 @@ public class ContentService(AppDbContext db)
             Certifications = AboutOf(AboutItemType.Certification),
             Languages = AboutOf(AboutItemType.Language),
             Volunteering = AboutOf(AboutItemType.Volunteering),
+            Cv = Doc<CvDto>("cv"),
+            Pages = Doc<PagesDto>("pages"),
         };
     }
 
@@ -185,6 +197,8 @@ public class ContentService(AppDbContext db)
             ImageUrl = x.Image ?? "",
             IsVisible = x.Visible,
             ShowOnHome = x.Home,
+            HideFromCv = !x.Cv,
+            CvBullets = Clean(x.CvBullets),
             SortOrder = i,
         }));
 
@@ -204,6 +218,7 @@ public class ContentService(AppDbContext db)
             Bullets = Clean(x.Bullets),
             Tags = Clean(x.Tags),
             IsMilestone = x.Milestone,
+            HideFromCv = !x.Cv,
         }));
 
         db.SkillCategories.AddRange(content.Skills.Select((s, i) => new SkillCategory
@@ -232,8 +247,20 @@ public class ContentService(AppDbContext db)
         AddAbout(AboutItemType.Volunteering, content.Volunteering);
         AddAbout(AboutItemType.Client, (content.Clients ?? []).Select(c => new TextItemDto { Title = c }).ToList());
 
+        await SetDocAsync("cv", content.Cv ?? new CvDto(), ct);
+        await SetDocAsync("pages", content.Pages ?? new PagesDto(), ct);
+
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
+    }
+
+    /// <summary>Saves a JSON document, touching it only when it changed so the "last updated" time stays honest.</summary>
+    private async Task SetDocAsync<T>(string key, T value, CancellationToken ct)
+    {
+        var json = JsonSerializer.Serialize(value, Json);
+        var doc = await db.ContentDocuments.FirstOrDefaultAsync(x => x.Key == key, ct);
+        if (doc is null) db.ContentDocuments.Add(new ContentDocument { Key = key, Json = json });
+        else if (JsonSerializer.Serialize(JsonSerializer.Deserialize<T>(doc.Json, Json), Json) != json) doc.Json = json;
     }
 
     private void AddAbout(AboutItemType type, List<TextItemDto>? items)

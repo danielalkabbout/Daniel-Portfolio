@@ -18,6 +18,21 @@ public class ValidationTests
     }
 
     [Fact]
+    public void Unknown_or_repeated_CV_sections_are_rejected()
+    {
+        var site = LoadSeed();
+        site.Cv.Sections = [new CvSectionDto { Key = "summary" }, new CvSectionDto { Key = "summary" }];
+        Assert.False(new SiteContentValidator().Validate(site).IsValid);
+        site.Cv.Sections = [new CvSectionDto { Key = "hobbies" }];
+        Assert.False(new SiteContentValidator().Validate(site).IsValid);
+        site.Cv.Sections = [new CvSectionDto { Key = "projects", Title = "Selected work", Visible = false }];
+        site.Cv.ProjectStyle = "both";
+        Assert.True(new SiteContentValidator().Validate(site).IsValid);
+        site.Cv.ProjectStyle = "everything";
+        Assert.False(new SiteContentValidator().Validate(site).IsValid);
+    }
+
+    [Fact]
     public void Bad_project_id_is_rejected()
     {
         var site = LoadSeed();

@@ -1,37 +1,15 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Page } from '../components/Page';
 import { useToast } from '../components/Toast';
 import { useSite } from '../api/content';
-import { buildCv, CV_NAME, SEP, type Run } from '../features/cv/cv';
+import { buildCv, CV_NAME } from '../features/cv/cv';
+import { CvSheet, cvSlug as slug } from '../features/cv/CvSheet';
+import { pageText } from '../content/defaults';
 import { duration, monthIndex } from '../lib/dates';
 import { smooth } from '../lib/env';
 
 const HOST = typeof window !== 'undefined' ? window.location.host : '';
-const slug = (t: string) => `cv-${t.toLowerCase().replace(/[^a-z]+/g, '-')}`;
-
-function Runs({ runs }: { runs: Run[] }) {
-  return (
-    <>
-      {runs.map((r, i) => {
-        if (r === SEP)
-          return (
-            <span key={i} className="cv-sep" aria-hidden="true">
-              |
-            </span>
-          );
-        const text = r.href ? (
-          <a href={r.href} target={r.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
-            {r.t}
-          </a>
-        ) : (
-          r.t
-        );
-        return r.b ? <b key={i}>{text}</b> : <Fragment key={i}>{text}</Fragment>;
-      })}
-    </>
-  );
-}
 
 /**
  * The CV in the layout of Daniel's Word CV, built from the published content: a project, role or
@@ -41,6 +19,7 @@ export default function CvPage() {
   const site = useSite();
   const say = useToast();
   const cv = useMemo(() => buildCv(site, HOST), [site]);
+  const text = pageText(site, 'cv');
   const [busy, setBusy] = useState(false);
   const [active, setActive] = useState(cv.sections[0]?.title ?? '');
   const sheetRef = useRef<HTMLElement>(null);
@@ -120,11 +99,8 @@ export default function CvPage() {
     <Page name="cv" title={`${CV_NAME} - CV`}>
       <div className="cv-hero">
         <div className="wrap">
-          <h1 tabIndex={-1}>My CV, always current</h1>
-          <p>
-            It is built from the same content as this site, so it changes whenever the site does. Read it here, or
-            download it as an A4 PDF.
-          </p>
+          <h1 tabIndex={-1}>{text.title}</h1>
+          {text.intro && <p>{text.intro}</p>}
         </div>
       </div>
 
@@ -181,53 +157,7 @@ export default function CvPage() {
         </aside>
 
         <div className="cv-paper">
-          <article className="cv-sheet" aria-label="CV" ref={sheetRef}>
-            <header className="cv-head">
-              <h2>{cv.name}</h2>
-              <p className="cv-headline">
-                <Runs runs={cv.headline} />
-              </p>
-              {cv.contact.map((line, i) => (
-                <p key={i} className="cv-contact">
-                  <Runs runs={line} />
-                </p>
-              ))}
-            </header>
-
-            {cv.sections.map((s) => (
-              <section key={s.title} id={slug(s.title)} data-title={s.title}>
-                <h3>{s.title}</h3>
-                {s.lines?.map((l, i) => (
-                  <p key={i} className={s.title === 'Skills' ? 'cv-skill' : 'cv-para'}>
-                    <Runs runs={l} />
-                  </p>
-                ))}
-                {s.bullets && (
-                  <ul>
-                    {s.bullets.map((b, i) => (
-                      <li key={i}>
-                        <Runs runs={b} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {s.entries?.map((e, i) => (
-                  <div key={i} className="cv-entry">
-                    <p className="cv-entry-head">
-                      <Runs runs={e.head} />
-                    </p>
-                    {e.bullets.length > 0 && (
-                      <ul>
-                        {e.bullets.map((b, j) => (
-                          <li key={j}>{b}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </section>
-            ))}
-          </article>
+          <CvSheet cv={cv} sheetRef={sheetRef} />
         </div>
       </div>
     </Page>

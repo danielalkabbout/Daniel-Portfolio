@@ -7,6 +7,7 @@ import { finePointer, reduceMotion } from '../lib/env';
 import { SearchIcon } from '../lib/icons';
 import cutout from '../assets/daniel-cutout.webp';
 import type { SiteContent } from '../types/content';
+import { pageText } from '../content/defaults';
 
 type TextItem = SiteContent['education'][number];
 
@@ -66,6 +67,7 @@ function usePhotoParallax(ref: React.RefObject<HTMLElement | null>) {
 
 export default function AboutPage() {
   const site = useSite();
+  const text = pageText(site, 'about');
   const photoRef = useRef<HTMLElement>(null);
   const [q, setQ] = useState('');
   usePhotoParallax(photoRef);
@@ -91,9 +93,9 @@ export default function AboutPage() {
         </div>
         <div className="wrap about-hero">
           <div>
-            <p className="title-line">About me</p>
-            <h1 tabIndex={-1}>Software engineer working on generative AI and backend systems.</h1>
-            <p>Based in Lebanon and open to relocating.</p>
+            {text.kicker && <p className="title-line">{text.kicker}</p>}
+            <h1 tabIndex={-1}>{text.title}</h1>
+            {text.intro && <p>{text.intro}</p>}
             <div className="more">
               <Link className="btn primary" to="/services">
                 Request my services
@@ -125,27 +127,10 @@ export default function AboutPage() {
       <section>
         <div className="wrap about-grid">
           <div className="story">
-            <p className="big">
-              I lead a team of three at SoftFlow Group that builds AI agents people actually use at work.
-            </p>
-            <p>
-              We build with Azure OpenAI, Azure AI Foundry and Copilot Studio, using retrieval-augmented generation over
-              SharePoint and SQL Server data, and deploy the agents in Microsoft Teams and WhatsApp. I split the work,
-              set the technical approach for each project, and review what goes out to clients.
-            </p>
-            <p>
-              Before an agent gets built, I meet the client to scope it: what data it can access, who uses it, and what
-              it should not do.
-            </p>
-            <p>
-              On the backend I work with C# and .NET (ASP.NET Core, MVC), Java with Spring Boot, and Python: REST APIs,
-              microservices, JWT and OAuth 2.0, Docker, and CI/CD pipelines in Azure DevOps.
-            </p>
-            <p>
-              I started at SoftFlow as an SPFx intern in 2024, grew into a junior developer and Copilot enablement role,
-              and moved into AI engineering and team leadership in April 2026. I graduated in Computer Science from
-              Antonine University in January 2026.
-            </p>
+            {text.lead && <p className="big">{text.lead}</p>}
+            {text.paragraphs.map((t, i) => (
+              <p key={i}>{t}</p>
+            ))}
             <div className="more">
               <Link className="btn primary" to="/services">
                 Request my services

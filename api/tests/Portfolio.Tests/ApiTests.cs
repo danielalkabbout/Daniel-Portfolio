@@ -62,6 +62,39 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task CV_settings_and_page_text_are_saved()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var admin = await AdminClientAsync();
+        var site = await admin.GetFromJsonAsync<SiteContentDto>("/api/admin/content", Json);
+        site!.Cv.Summary = "A summary written in the studio.";
+        site.Cv.Headline = ["AI Engineer", "Tech Lead"];
+        site.Cv.Sections = [new CvSectionDto { Key = "experience", Title = "Work" }, new CvSectionDto { Key = "summary", Visible = false }];
+        site.Pages.About.Title = "About title from the studio";
+        site.Pages.Home.Items = ["Teams", "WhatsApp"];
+        site.Projects[0].Cv = false;
+        site.Projects[1].CvBullets = ["First CV bullet", "Second CV bullet"];
+        site.Experience[0].Cv = false;
+
+        var save = await admin.PutAsJsonAsync("/api/admin/content", site, Json);
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+        var body = await save.Content.ReadAsStringAsync();
+        Assert.Contains("\"cv\"", body);
+        Assert.Contains("\"pages\"", body);
+
+        var saved = await factory.CreateClient().GetFromJsonAsync<SiteContentDto>("/api/content", Json);
+        Assert.Equal("A summary written in the studio.", saved!.Cv.Summary);
+        Assert.Equal(new[] { "AI Engineer", "Tech Lead" }, saved.Cv.Headline);
+        Assert.Equal("Work", saved.Cv.Sections[0].Title);
+        Assert.False(saved.Cv.Sections[1].Visible);
+        Assert.Equal("About title from the studio", saved.Pages.About.Title);
+        Assert.Equal(new[] { "Teams", "WhatsApp" }, saved.Pages.Home.Items);
+        Assert.False(saved.Projects.Single(p => p.Id == site.Projects[0].Id).Cv);
+        Assert.Equal(new[] { "First CV bullet", "Second CV bullet" }, saved.Projects.Single(p => p.Id == site.Projects[1].Id).CvBullets);
+        Assert.False(saved.Experience.Single(e => e.Id == site.Experience[0].Id).Cv);
+    }
+
+    [SkippableFact]
     public async Task Invalid_content_is_rejected()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");

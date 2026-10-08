@@ -169,7 +169,7 @@ export async function downloadCvPdf(cv: Cv) {
 
   for (const s of cv.sections) {
     w.heading(s.title);
-    s.lines?.forEach((l) => w.para(l, { after: s.title === 'Skills' ? 1.5 : 2 }));
+    s.lines?.forEach((l) => w.para(l, { after: s.key === 'skills' ? 1.5 : 2 }));
     s.bullets?.forEach((b) => w.para(b, { x: 18, bullet: true, after: 1.5 }));
     s.entries?.forEach((e, i) => {
       if (i) w.y += 6;

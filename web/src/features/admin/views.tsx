@@ -264,6 +264,8 @@ export function OverviewView({ newRequests }: { newRequests: number | null }) {
             })}
             {qa('Add skills', 'Drop new tools into a category', () => show('skills'))}
             {qa('Add a certification', 'Courses and certificates', () => show('about'))}
+            {qa('Edit your CV', 'Summary, headline, section order', () => show('cv'))}
+            {qa('Edit page text', 'Headings and paragraphs on every page', () => show('pages'))}
           </div>
         </div>
         <div className="adm-card">
@@ -291,6 +293,7 @@ export function OverviewView({ newRequests }: { newRequests: number | null }) {
               ? `Last published ${new Date(base.updatedAt).toLocaleString()}`
               : 'Not published from the studio yet.'}
           </p>
+          <Checks />
           <h3 className="adm-mt">How it works</h3>
           <ol className="adm-how">
             <li>Edit anything in the tabs on the left.</li>
@@ -303,6 +306,66 @@ export function OverviewView({ newRequests }: { newRequests: number | null }) {
           </ol>
         </div>
       </div>
+    </>
+  );
+}
+
+/** Things worth a look before publishing. Each one opens the tab where it can be fixed. */
+function Checks() {
+  const { d, show } = useStudio();
+  const items: { ok: boolean; text: string; tab: Parameters<typeof show>[0] }[] = [];
+  const noVisual = d.projects.filter((p) => p.visible && !p.image && !p.demo);
+  const noBullets = d.experience.filter((e) => !e.milestone && !e.bullets.some((b) => b.trim()));
+  const offCv =
+    d.projects.filter((p) => p.visible && !p.cv).length + d.experience.filter((e) => !e.milestone && !e.cv).length;
+  const summary = d.cv.summary.trim().length;
+  const hiddenSections = d.cv.sections.filter((s) => !s.visible).length;
+  if (noVisual.length)
+    items.push({
+      ok: false,
+      text: `${noVisual.length} project${noVisual.length > 1 ? 's have' : ' has'} no screenshot or demo`,
+      tab: 'projects',
+    });
+  if (noBullets.length)
+    items.push({
+      ok: false,
+      text: `${noBullets.length} role${noBullets.length > 1 ? 's have' : ' has'} no bullets, so the CV shows only the title`,
+      tab: 'experience',
+    });
+  if (summary > 900) items.push({ ok: false, text: `Your CV summary is long (${summary} characters)`, tab: 'cv' });
+  if (offCv)
+    items.push({
+      ok: true,
+      text: `${offCv} item${offCv > 1 ? 's are' : ' is'} left off your CV on purpose`,
+      tab: 'cv',
+    });
+  if (hiddenSections)
+    items.push({
+      ok: true,
+      text: `${hiddenSections} CV section${hiddenSections > 1 ? 's are' : ' is'} switched off`,
+      tab: 'cv',
+    });
+  return (
+    <>
+      <h3 className="adm-mt">Checks</h3>
+      {items.length ? (
+        <ul className="adm-checks">
+          {items.map((it) => (
+            <li key={it.text}>
+              <button type="button" className={it.ok ? 'info' : 'warn'} onClick={() => show(it.tab)}>
+                <Ic n={it.ok ? 'info' : 'warn'} />
+                <span>{it.text}</span>
+                <Ic n="arrow" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="adm-ok">
+          <Ic n="check" />
+          Every project has a visual, every role has bullets, and your CV is in good shape.
+        </p>
+      )}
     </>
   );
 }
@@ -337,7 +400,7 @@ function projectPreview(p: Obj) {
   );
 }
 
-function projectSpec(p: Project | null, { update, toast }: SpecCtx) {
+export function projectSpec(p: Project | null, { update, toast }: SpecCtx) {
   const cur: Obj = p
     ? clone(p)
     : {
@@ -357,6 +420,8 @@ function projectSpec(p: Project | null, { update, toast }: SpecCtx) {
         image: '',
         visible: true,
         home: true,
+        cv: true,
+        cvBullets: [],
       };
   const demoChoices: [string, string][] = [['', 'No demo, screenshot or text only']];
   if (cur.demo && DEMO_LABELS[String(cur.demo)])
@@ -421,6 +486,16 @@ function projectSpec(p: Project | null, { update, toast }: SpecCtx) {
     },
     { kind: 'toggle', key: 'visible', label: 'Show on the site', help: 'Turn off to keep it as a hidden draft.' },
     { kind: 'toggle', key: 'home', label: 'Show on the home page', help: 'Adds it to the "Selected projects" row.' },
+    { kind: 'section', label: 'On your CV' },
+    { kind: 'toggle', key: 'cv', label: 'Include on the CV', help: 'New projects are on the CV automatically.' },
+    {
+      kind: 'lines',
+      key: 'cvBullets',
+      label: 'CV bullets',
+      ph: 'e.g. Users ask questions about SharePoint files from WhatsApp',
+      addLabel: 'Add CV bullet',
+      help: 'Optional. Leave empty and the CV uses the summary or the key features, as set in the CV tab.',
+    },
   ];
   const onSave = (c: Obj) =>
     update((x) => {
@@ -540,11 +615,11 @@ const TYPES: [string, string][] = [
   ['Contract', 'Contract'],
 ];
 
-function roleSpec(e: Experience | null, ms: boolean, { update, toast }: SpecCtx) {
+export function roleSpec(e: Experience | null, ms: boolean, { update, toast }: SpecCtx) {
   const cur: Obj = e
     ? { ...clone(e), end: e.end ?? '' }
     : ms
-      ? { id: '', title: '', org: '', start: '', milestone: true }
+      ? { id: '', title: '', org: '', start: '', milestone: true, cv: true }
       : {
           id: '',
           title: '',
@@ -557,6 +632,7 @@ function roleSpec(e: Experience | null, ms: boolean, { update, toast }: SpecCtx)
           bullets: [],
           tags: [],
           milestone: false,
+          cv: true,
         };
   if (!ms) {
     cur.current = Boolean(e) && !e?.end;
@@ -625,6 +701,13 @@ function roleSpec(e: Experience | null, ms: boolean, { update, toast }: SpecCtx)
             max: 20,
             ph: 'e.g. Tech Lead',
             help: 'Keep it very short. Defaults to the job title.',
+          },
+          { kind: 'section', label: 'On your CV' },
+          {
+            kind: 'toggle',
+            key: 'cv',
+            label: 'Include on the CV',
+            help: 'New roles are on the CV automatically, with these bullets.',
           },
         ];
   return {
@@ -1210,16 +1293,19 @@ export function DataView() {
   );
 }
 
-export const TABS: [Parameters<ReturnType<typeof useStudio>['show']>[0], string, IconName][] = [
-  ['overview', 'Overview', 'overview'],
-  ['requests', 'Requests', 'requests'],
-  ['projects', 'Projects', 'projects'],
-  ['experience', 'Experience', 'experience'],
-  ['skills', 'Skills', 'skills'],
-  ['services', 'Services', 'services'],
-  ['profile', 'Profile and home', 'profile'],
-  ['about', 'About details', 'about'],
-  ['data', 'Backup and restore', 'data'],
-  ['activity', 'Activity', 'activity'],
-  ['account', 'Account', 'lock'],
+/** Sidebar tabs: [tab, label, icon, group]. A new group starts a new heading. */
+export const TABS: [Parameters<ReturnType<typeof useStudio>['show']>[0], string, IconName, string][] = [
+  ['overview', 'Overview', 'overview', 'Start'],
+  ['requests', 'Requests', 'requests', 'Start'],
+  ['projects', 'Projects', 'projects', 'Your work'],
+  ['experience', 'Experience', 'experience', 'Your work'],
+  ['skills', 'Skills', 'skills', 'Your work'],
+  ['services', 'Services', 'services', 'Your work'],
+  ['about', 'About details', 'about', 'Your work'],
+  ['cv', 'CV', 'cv', 'Pages'],
+  ['profile', 'Profile and home', 'profile', 'Pages'],
+  ['pages', 'Page text', 'text', 'Pages'],
+  ['data', 'Backup and restore', 'data', 'Settings'],
+  ['activity', 'Activity', 'activity', 'Settings'],
+  ['account', 'Account', 'lock', 'Settings'],
 ];

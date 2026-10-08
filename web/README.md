@@ -60,6 +60,10 @@ email, then `POST /api/auth/login` with a one-time proof, so neither the email n
 sent. The API answers with an HttpOnly, SameSite=Strict session cookie that page scripts cannot read; the browser only keeps the email and expiry, to show the
 Studio link. Every request sends an `X-Requested-With` header, which the API requires for any change
 (CSRF protection).
+Tabs are grouped: Start (overview with checks, requests), Your work (projects, experience, skills,
+services, about details), Pages (**CV** with a live preview and draft PDF, profile and home, **Page text**
+for every heading and paragraph), Settings (backup, activity, account). CV settings and page text live in
+`content.cv` and `content.pages`; empty fields fall back to `src/content/defaults.ts`.
 Edits stay in a local draft until **Publish changes**, which saves with `PUT /api/admin/content`
 and then asks the API to rebuild the site (`POST /api/admin/publish`). **Preview** shows the draft
 on the real pages in this tab only.
