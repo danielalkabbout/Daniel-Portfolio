@@ -48,6 +48,18 @@ function Gantt({ items, groups, first }: ReturnType<typeof useTimeline>) {
   const years: number[] = [];
   for (let y = Math.floor(start / 12); y <= ym(null)[0]; y++) years.push(y);
 
+  // On a phone the chart scrolls sideways; start where the newest role sits just right of the company names.
+  useEffect(() => {
+    const g = ref.current;
+    if (!g || g.scrollWidth <= g.clientWidth) return;
+    const bars = [...g.querySelectorAll<HTMLElement>('.g-bar')];
+    const label = g.querySelector<HTMLElement>('.g-row p');
+    if (!bars.length || !label) return;
+    const gl = g.getBoundingClientRect().left;
+    const newest = Math.max(...bars.map((b) => b.getBoundingClientRect().left - gl + g.scrollLeft));
+    g.scrollLeft = Math.max(0, newest - label.offsetWidth - 24);
+  }, []);
+
   useEffect(() => {
     const g = ref.current;
     if (!g) return;
@@ -332,7 +344,12 @@ export default function ExperiencePage() {
         <div className="wrap">
           <div className="head">
             <h2>My path at a glance</h2>
-            <p>Each bar is a role. Hover for details, click to jump to it.</p>
+            <p>
+              <span className="on-mouse">Each bar is a role. Hover for details, click to jump to it.</span>
+              <span className="on-touch">
+                Each bar is a role. Tap one to jump to it, and swipe the chart to see every year.
+              </span>
+            </p>
           </div>
           <Gantt {...tl} />
           {site.clients.length > 0 && (
