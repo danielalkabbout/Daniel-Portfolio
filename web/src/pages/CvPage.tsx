@@ -1,26 +1,44 @@
-import { useEffect } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Page } from '../components/Page';
+import { useToast } from '../components/Toast';
 import { useSite } from '../api/content';
-import { fmtMonth, monthIndex } from '../lib/dates';
+import { buildCv, CV_NAME, SEP, type Run } from '../features/cv/cv';
 
-const NAME = 'Daniel Al Kabbout';
-const SITE = typeof window !== 'undefined' ? window.location.host : '';
+const HOST = typeof window !== 'undefined' ? window.location.host : '';
 
-const strip = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+function Runs({ runs }: { runs: Run[] }) {
+  return (
+    <>
+      {runs.map((r, i) => {
+        if (r === SEP)
+          return (
+            <span key={i} className="cv-sep" aria-hidden="true">
+              |
+            </span>
+          );
+        const text = r.href ? (
+          <a href={r.href} target={r.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+            {r.t}
+          </a>
+        ) : (
+          r.t
+        );
+        return r.b ? <b key={i}>{text}</b> : <Fragment key={i}>{text}</Fragment>;
+      })}
+    </>
+  );
+}
 
 /**
- * A one-page CV built from the same content as the site, so it is never out of date.
- * "Download PDF" opens the browser's print dialog, where "Save as PDF" makes the file.
+ * The CV in the layout of Daniel's Word CV, built from the published content: a project, role or
+ * skill added in the studio shows up here and in the downloaded PDF automatically.
  */
 export default function CvPage() {
   const site = useSite();
-  const p = site.profile;
-  const roles = site.experience
-    .filter((e) => !e.milestone)
-    .sort((a, b) => monthIndex(b.end) - monthIndex(a.end) || monthIndex(b.start) - monthIndex(a.start));
-  // Every project shown on the site, in the studio's order: a project added there appears here too.
-  const projects = site.projects.filter((x) => x.visible);
+  const say = useToast();
+  const cv = useMemo(() => buildCv(site, HOST), [site]);
+  const [busy, setBusy] = useState(false);
 
   // Printing uses the CV styles only (see .cv-mode in site.css).
   useEffect(() => {
@@ -28,132 +46,82 @@ export default function CvPage() {
     return () => document.documentElement.classList.remove('cv-mode');
   }, []);
 
+  const download = async () => {
+    setBusy(true);
+    try {
+      const { downloadCvPdf } = await import('../features/cv/pdf');
+      await downloadCvPdf(cv);
+    } catch {
+      say('Could not make the PDF. Try again, or print the page and choose “Save as PDF”.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <Page name="cv" title={`${NAME} - CV`}>
+    <Page name="cv" title={`${CV_NAME} - CV`}>
       <div className="wrap cv-page">
         <div className="cv-tools">
           <div>
             <h1 tabIndex={-1}>Curriculum vitae</h1>
-            <p>Always up to date: it is built from the same content as this site.</p>
+            <p>Always up to date: built from the same content as this site.</p>
           </div>
           <div className="cv-actions">
-            <button type="button" className="btn primary" onClick={() => window.print()}>
-              Download PDF
+            <button type="button" className="btn primary" disabled={busy} onClick={() => void download()}>
+              {busy ? 'Preparing PDF…' : 'Download PDF'}
             </button>
             <Link className="btn" to="/about">
               Back to About
             </Link>
           </div>
-          <p className="cv-hint">In the print window, choose “Save as PDF” as the printer.</p>
         </div>
 
         <article className="cv-sheet" aria-label="CV">
           <header className="cv-head">
-            <div>
-              <h2>{NAME}</h2>
-              <p className="cv-role">{p.intro}</p>
-            </div>
-            <ul className="cv-contact">
-              <li>
-                <a href={`mailto:${p.email}`}>{p.email}</a>
-              </li>
-              {p.phone && <li>{p.phone}</li>}
-              {p.linkedin && (
-                <li>
-                  <a href={p.linkedin}>{strip(p.linkedin)}</a>
-                </li>
-              )}
-              {p.github && (
-                <li>
-                  <a href={p.github}>{strip(p.github)}</a>
-                </li>
-              )}
-              {SITE && (
-                <li>
-                  <a href={`https://${SITE}`}>{SITE}</a>
-                </li>
-              )}
-              <li>Lebanon · {p.status}</li>
-            </ul>
+            <h2>{cv.name}</h2>
+            <p className="cv-headline">
+              <Runs runs={cv.headline} />
+            </p>
+            {cv.contact.map((line, i) => (
+              <p key={i} className="cv-contact">
+                <Runs runs={line} />
+              </p>
+            ))}
           </header>
 
-          <p className="cv-summary">
-            {p.intro} {p.introRest}
-          </p>
-
-          <section>
-            <h3>Experience</h3>
-            {roles.map((e) => (
-              <div className="cv-item" key={e.id}>
-                <div className="cv-line">
-                  <b>
-                    {e.title} · {e.org}
-                  </b>
-                  <span>
-                    {fmtMonth(e.start, true)} to {fmtMonth(e.end, true)}
-                  </span>
-                </div>
-                {e.bullets.length > 0 && (
-                  <ul>
-                    {e.bullets.map((b, i) => (
-                      <li key={i}>{b}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </section>
-
-          {projects.length > 0 && (
-            <section>
-              <h3>Projects</h3>
-              {projects.map((x) => (
-                <div className="cv-item" key={x.id}>
-                  <div className="cv-line">
-                    <b>{x.title}</b>
-                    {x.kind && <span>{x.kind}</span>}
-                  </div>
-                  <p>{x.summary}</p>
-                  {x.tags.length > 0 && <p className="cv-tags">{x.tags.join(' · ')}</p>}
+          {cv.sections.map((s) => (
+            <section key={s.title}>
+              <h3>{s.title}</h3>
+              {s.lines?.map((l, i) => (
+                <p key={i} className={s.title === 'Skills' ? 'cv-skill' : 'cv-para'}>
+                  <Runs runs={l} />
+                </p>
+              ))}
+              {s.bullets && (
+                <ul>
+                  {s.bullets.map((b, i) => (
+                    <li key={i}>
+                      <Runs runs={b} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {s.entries?.map((e, i) => (
+                <div key={i} className="cv-entry">
+                  <p className="cv-entry-head">
+                    <Runs runs={e.head} />
+                  </p>
+                  {e.bullets.length > 0 && (
+                    <ul>
+                      {e.bullets.map((b, j) => (
+                        <li key={j}>{b}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ))}
             </section>
-          )}
-
-          <section>
-            <h3>Skills</h3>
-            <dl className="cv-skills">
-              {site.skills.map((s) => (
-                <div key={s.name}>
-                  <dt>{s.name}</dt>
-                  <dd>{s.items.join(', ')}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-
-          <div className="cv-cols">
-            {(
-              [
-                ['Education', site.education],
-                ['Certifications', site.certifications],
-                ['Languages', site.languages],
-                ['Volunteering', site.volunteering],
-              ] as const
-            )
-              .filter(([, list]) => list.length > 0)
-              .map(([title, list]) => (
-                <section key={title}>
-                  <h3>{title}</h3>
-                  {list.map((t, i) => (
-                    <p key={i} className="cv-small">
-                      <b>{t.title}</b>
-                      {t.detail && <span> · {t.detail}</span>}
-                    </p>
-                  ))}
-                </section>
-              ))}
-          </div>
+          ))}
         </article>
       </div>
     </Page>

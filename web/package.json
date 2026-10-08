@@ -16,6 +16,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.104.1",
     "clsx": "^2.1.1",
+    "jspdf": "^4.2.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.4.0",

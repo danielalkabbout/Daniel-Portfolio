@@ -12,20 +12,20 @@ vi.mock('../api/content', async (orig) => ({
 
 const { default: CvPage } = await import('./CvPage');
 
-describe('CV', () => {
+describe('CV page', () => {
   it('lists every visible project, including newly added ones, and skips hidden ones', () => {
     site.projects.push(
       { ...site.projects[0], id: 'brand-new', title: 'Brand new project', visible: true },
       { ...site.projects[0], id: 'secret', title: 'Hidden project', visible: false },
     );
-    const { container } = render(
+    const { container, getByRole } = render(
       <MemoryRouter>
         <CvPage />
       </MemoryRouter>,
     );
     const text = container.textContent ?? '';
     for (const p of site.projects.filter((x) => x.visible)) expect(text).toContain(p.title);
-    expect(text).toContain('Brand new project');
     expect(text).not.toContain('Hidden project');
+    expect(getByRole('button', { name: 'Download PDF' })).toBeTruthy();
   });
 });
