@@ -7,6 +7,7 @@ import { smooth } from '../lib/env';
 import { ArrowUpRight, GitHubIcon, Icon } from '../lib/icons';
 import { DEMOS } from '../features/projects/demos';
 import type { Project } from '../types/content';
+import { pageText } from '../content/defaults';
 
 function ProjectArticle({ p }: { p: Project }) {
   const demo = p.demo ? DEMOS[p.demo] : undefined;
@@ -65,6 +66,7 @@ function ProjectArticle({ p }: { p: Project }) {
 
 export default function ProjectsPage() {
   const site = useSite();
+  const text = pageText(site, 'projects');
   const { projectId } = useParams();
   const navigate = useNavigate();
   const projects = site.projects.filter((p) => p.visible !== false);
@@ -127,9 +129,9 @@ export default function ProjectsPage() {
           <i />
         </div>
         <div className="wrap">
-          <p className="title-line">Projects</p>
-          <h1 tabIndex={-1}>Things I've built.</h1>
-          <p>Personal projects and work I can share. Most of them are on GitHub.</p>
+          {text.kicker && <p className="title-line">{text.kicker}</p>}
+          <h1 tabIndex={-1}>{text.title}</h1>
+          {text.intro && <p>{text.intro}</p>}
         </div>
       </div>
       <section className="pj-sec">

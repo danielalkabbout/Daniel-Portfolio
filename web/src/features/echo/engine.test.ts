@@ -27,6 +27,7 @@ describe('Echo', () => {
         bullets: ['Built the agent platform.'],
         tags: [],
         milestone: false,
+        cv: true,
       });
       c.languages = [{ title: 'Italian', detail: 'Basic' }];
     });

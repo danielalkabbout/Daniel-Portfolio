@@ -16,7 +16,9 @@ namespace Portfolio.Infrastructure.Persistence.Migrations
                 name: "CvBullets",
                 table: "Projects",
                 type: "text[]",
-                nullable: false);
+                nullable: false,
+                // Existing projects start with no CV bullets (hand-added: EF leaves array columns without a default).
+                defaultValueSql: "'{}'");
 
             migrationBuilder.AddColumn<bool>(
                 name: "HideFromCv",

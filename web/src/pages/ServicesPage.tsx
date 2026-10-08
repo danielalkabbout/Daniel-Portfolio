@@ -7,6 +7,7 @@ import { clamp01, reduceMotion, smooth } from '../lib/env';
 import { ArrowRight, ChatIcon, LinkedInIcon, MailIcon, SERVICE_VISUALS, visualKey } from '../lib/icons';
 import { Turnstile, TURNSTILE_SITE_KEY } from '../features/services/Turnstile';
 import me from '../assets/daniel-small.jpg';
+import { pageText } from '../content/defaults';
 
 const WHEN = ['As soon as possible', 'Within a month', 'In 1 to 3 months', 'Not sure yet'];
 const STEPS = ['Services', 'Details', 'Contact'];
@@ -32,6 +33,7 @@ type Errors = Partial<Record<'svc' | 'message' | 'name' | 'email' | 'form', stri
 
 export default function ServicesPage() {
   const site = useSite();
+  const text = pageText(site, 'services');
   const p = site.profile;
   const services = site.services.filter((s) => s.visible !== false);
   const [picked, setPicked] = useState<string[]>([]);
@@ -162,16 +164,17 @@ export default function ServicesPage() {
           <i />
         </div>
         <div className="wrap">
-          <p className="title-line">Services</p>
+          {text.kicker && <p className="title-line">{text.kicker}</p>}
           <h1 tabIndex={-1}>
-            Pick what you need.
-            <br />
-            <span className="grad">I'll build it.</span>
+            {text.title}
+            {text.accent && (
+              <>
+                <br />
+                <span className="grad">{text.accent}</span>
+              </>
+            )}
           </h1>
-          <p>
-            Tap the services you're interested in, then send one request. Every project starts with a conversation about
-            what it should do, and what it should never do.
-          </p>
+          {text.intro && <p>{text.intro}</p>}
           <div className="more">
             <a
               className="btn primary"
@@ -231,24 +234,13 @@ export default function ServicesPage() {
             <p>The same process I use with clients at SoftFlow.</p>
           </div>
           <ol className="flow" id="flow" ref={flowRef}>
-            <li>
-              <span className="fl-n">1</span>
-              <h3>Scope</h3>
-              <p>
-                We meet and agree on what you need. For an AI agent: what data it can access, who uses it, and what it
-                should not do.
-              </p>
-            </li>
-            <li>
-              <span className="fl-n">2</span>
-              <h3>Build</h3>
-              <p>I set the technical approach and build it, keeping you updated as it takes shape.</p>
-            </li>
-            <li>
-              <span className="fl-n">3</span>
-              <h3>Review and launch</h3>
-              <p>Everything is reviewed before it goes out, then deployed where your team works.</p>
-            </li>
+            {text.steps.map((st, i) => (
+              <li key={i}>
+                <span className="fl-n">{i + 1}</span>
+                <h3>{st.title}</h3>
+                {st.detail && <p>{st.detail}</p>}
+              </li>
+            ))}
           </ol>
         </div>
       </section>

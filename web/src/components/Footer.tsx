@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { useSite } from '../api/content';
 import { copyText } from '../lib/env';
 import { ChatIcon, GitHubIcon, LinkedInIcon, MailIcon } from '../lib/icons';
+import { pageText } from '../content/defaults';
 
 function beirutTime() {
   try {
@@ -15,7 +16,9 @@ function beirutTime() {
 }
 
 export function Footer() {
-  const { profile: p } = useSite();
+  const site = useSite();
+  const p = site.profile;
+  const text = pageText(site, 'footer');
   const ref = useRef<HTMLElement>(null);
   const [time, setTime] = useState(beirutTime);
   const [copied, setCopied] = useState(false);
@@ -56,12 +59,16 @@ export function Footer() {
           <div>
             <p className="ft-kicker">
               <b aria-hidden="true" />
-              Available for new projects
+              {text.kicker}
             </p>
             <h2>
-              Have an idea?
-              <br />
-              <span>Let's build it.</span>
+              {text.title}
+              {text.accent && (
+                <>
+                  <br />
+                  <span>{text.accent}</span>
+                </>
+              )}
             </h2>
           </div>
           <div className="ft-actions">
@@ -97,10 +104,7 @@ export function Footer() {
 
         <div className="ft-grid">
           <div className="ft-about">
-            <p>
-              AI Software Engineer and Technical Lead at SoftFlow Group. I build AI agents, WhatsApp bots, web and
-              mobile apps, and the backends behind them.
-            </p>
+            <p>{text.intro}</p>
             <div className="ft-clock">
               <span className="ft-dot" aria-hidden="true" />
               <span>
