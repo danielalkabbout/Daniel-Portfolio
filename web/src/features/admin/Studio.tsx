@@ -12,7 +12,7 @@ import { ActivityView, RequestsView, useRequests } from './RequestsView';
 import { AccountView } from './AccountView';
 import { CvView } from './CvView';
 import { PagesView } from './PagesView';
-import { VisitorsView } from './VisitorsView';
+import { useVisitorsToday, VisitorsView } from './VisitorsView';
 import { withDefaults } from '../../content/defaults';
 import { Ic, useUi } from './ui';
 import { changedSections, clone, LABEL, StudioCtx, type DrawerSpec, type StudioApi, type Tab } from './studio-state';
@@ -65,6 +65,7 @@ export function Studio({ initial: raw }: { initial: SiteContent }) {
   const mainRef = useRef<HTMLElement>(null);
   const requests = useRequests();
   const newCount = requests.data ? requests.data.filter((r) => r.status === 'New').length : null;
+  const visitorsToday = useVisitorsToday();
 
   const ch = changedSections(d, base);
   const dirty = ch.length > 0;
@@ -233,6 +234,7 @@ export function Studio({ initial: raw }: { initial: SiteContent }) {
     skills: d.skills.reduce((a, g) => a + g.items.length, 0),
     services: d.services.length,
     requests: newCount,
+    visitors: visitorsToday,
   };
 
   const View = {
@@ -302,8 +304,13 @@ export function Studio({ initial: raw }: { initial: SiteContent }) {
                     </span>
                     <span className="adm-tab-label">{label}</span>
                     {changed && <i className="adm-chg" title="Unpublished changes" />}
-                    {n != null && (k !== 'requests' || n > 0) && (
-                      <em className={k === 'requests' ? 'hot' : undefined}>{n}</em>
+                    {n != null && ((k !== 'requests' && k !== 'visitors') || n > 0) && (
+                      <em
+                        className={k === 'requests' ? 'hot' : k === 'visitors' ? 'live' : undefined}
+                        title={k === 'visitors' ? 'Visitors today' : undefined}
+                      >
+                        {n}
+                      </em>
                     )}
                   </button>
                 </Fragment>

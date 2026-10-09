@@ -18,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
     public DbSet<ContentDocument> ContentDocuments => Set<ContentDocument>();
     public DbSet<Visit> Visits => Set<Visit>();
+    public DbSet<TrackedLink> TrackedLinks => Set<TrackedLink>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -125,7 +126,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Country).HasMaxLength(2);
             e.Property(x => x.Device).HasMaxLength(10);
             e.Property(x => x.Visitor).HasMaxLength(16);
+            e.Property(x => x.Ref).HasMaxLength(12).HasDefaultValue("");
             e.HasIndex(x => x.At);
+            e.HasIndex(x => x.Ref);
+        });
+
+        b.Entity<TrackedLink>(e =>
+        {
+            e.Property(x => x.Code).HasMaxLength(12);
+            e.HasIndex(x => x.Code).IsUnique();
+            e.Property(x => x.Label).HasMaxLength(80);
+            e.Property(x => x.Note).HasMaxLength(200);
         });
 
         b.Entity<ContentDocument>(e =>
