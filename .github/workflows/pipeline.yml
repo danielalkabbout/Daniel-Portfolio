@@ -22,6 +22,10 @@ concurrency:
   group: production
   cancel-in-progress: false
 
+# The workflow only reads the code; it never writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   changes:
     runs-on: ubuntu-latest
