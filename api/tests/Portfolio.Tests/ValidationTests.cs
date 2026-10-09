@@ -33,6 +33,25 @@ public class ValidationTests
     }
 
     [Fact]
+    public void Page_sections_are_checked()
+    {
+        var site = LoadSeed();
+        site.Pages.Home.Sections["now"] = new PageSectionDto
+        {
+            Title = "What I'm working on",
+            Cards = [new PageCardDto { Label = "In progress", Title = "Money tracker", Stage = "now", Tags = ["React"] }],
+        };
+        Assert.True(new SiteContentValidator().Validate(site).IsValid);
+
+        site.Pages.Home.Sections["now"].Cards[0].Stage = "someday";
+        Assert.False(new SiteContentValidator().Validate(site).IsValid);
+
+        site.Pages.Home.Sections["now"].Cards[0].Stage = "next";
+        site.Pages.Home.Sections["Bad Key!"] = new PageSectionDto();
+        Assert.False(new SiteContentValidator().Validate(site).IsValid);
+    }
+
+    [Fact]
     public void Bad_project_id_is_rejected()
     {
         var site = LoadSeed();

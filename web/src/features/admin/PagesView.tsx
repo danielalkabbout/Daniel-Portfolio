@@ -5,6 +5,7 @@ import { FieldView, type Field } from './fields';
 import { Ic, useUi } from './ui';
 import { useStudio, type Obj } from './studio-state';
 import { Head } from './views';
+import { PageSections } from './PageSections';
 
 type Block = Exclude<keyof PageText, 'steps'>;
 
@@ -152,7 +153,7 @@ export function PagesView() {
     if (
       !(await ask({
         title: `Reset the ${page.label} text?`,
-        text: 'Every field on this page goes back to the original text.',
+        text: 'Every field and section on this page goes back to the original text.',
         ok: 'Reset',
         danger: true,
       }))
@@ -166,7 +167,7 @@ export function PagesView() {
     <>
       <Head
         title="Page text"
-        desc="The headings and paragraphs around your content on every page. Pick a page, edit, and see it in the sketch."
+        desc="Every heading, button, card and line of text on each page. Pick a page, edit its sections, and publish when ready."
         actions={
           <button type="button" className="adm-btn ghost" onClick={() => void reset()}>
             <Ic n="reset" />
@@ -182,68 +183,71 @@ export function PagesView() {
         ))}
       </div>
       <div className="adm-pages">
-        <div className="adm-card adm-form">
-          {fields.map((f) => (
-            <FieldView
-              key={`${key}-${'key' in f ? f.key : ''}`}
-              f={f}
-              o={t as unknown as Obj}
-              set={setText}
-              err={'key' in f ? errs[f.key] : null}
-              setErr={(k, e) => setErrs((x) => ({ ...x, [k]: e }))}
-            />
-          ))}
-          {page.steps && (
-            <div className="adm-field">
-              <label>How we'd work together (numbered steps)</label>
-              <ol className="adm-steps">
-                {t.steps.map((s, i) => (
-                  <li key={i}>
-                    <span className="adm-steps-n">{i + 1}</span>
-                    <div>
-                      <input
-                        value={s.title}
-                        maxLength={60}
-                        aria-label={`Step ${i + 1} title`}
-                        placeholder="Step title"
-                        onChange={(e) => update((x) => void (x.pages.services.steps[i].title = e.target.value))}
-                      />
-                      <textarea
-                        value={s.detail}
-                        rows={2}
-                        maxLength={300}
-                        aria-label={`Step ${i + 1} text`}
-                        placeholder="What happens in this step"
-                        onChange={(e) => update((x) => void (x.pages.services.steps[i].detail = e.target.value))}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      className="adm-ibtn"
-                      aria-label={`Remove step ${i + 1}`}
-                      onClick={() => update((x) => void x.pages.services.steps.splice(i, 1))}
-                    >
-                      <Ic n="del" />
-                    </button>
-                  </li>
-                ))}
-              </ol>
-              {t.steps.length < 6 && (
-                <button
-                  type="button"
-                  className="adm-add"
-                  onClick={() => update((x) => void x.pages.services.steps.push({ title: '', detail: '' }))}
-                >
-                  <Ic n="plus" />
-                  Add step
-                </button>
-              )}
-            </div>
-          )}
-          <p className="adm-muted adm-pages-note">
-            <Ic n="info" />
-            Leave a field empty to use the original text.
-          </p>
+        <div className="adm-pages-main">
+          <div className="adm-card adm-form">
+            {fields.map((f) => (
+              <FieldView
+                key={`${key}-${'key' in f ? f.key : ''}`}
+                f={f}
+                o={t as unknown as Obj}
+                set={setText}
+                err={'key' in f ? errs[f.key] : null}
+                setErr={(k, e) => setErrs((x) => ({ ...x, [k]: e }))}
+              />
+            ))}
+            {page.steps && (
+              <div className="adm-field">
+                <label>How we'd work together (numbered steps)</label>
+                <ol className="adm-steps">
+                  {t.steps.map((s, i) => (
+                    <li key={i}>
+                      <span className="adm-steps-n">{i + 1}</span>
+                      <div>
+                        <input
+                          value={s.title}
+                          maxLength={60}
+                          aria-label={`Step ${i + 1} title`}
+                          placeholder="Step title"
+                          onChange={(e) => update((x) => void (x.pages.services.steps[i].title = e.target.value))}
+                        />
+                        <textarea
+                          value={s.detail}
+                          rows={2}
+                          maxLength={300}
+                          aria-label={`Step ${i + 1} text`}
+                          placeholder="What happens in this step"
+                          onChange={(e) => update((x) => void (x.pages.services.steps[i].detail = e.target.value))}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className="adm-ibtn"
+                        aria-label={`Remove step ${i + 1}`}
+                        onClick={() => update((x) => void x.pages.services.steps.splice(i, 1))}
+                      >
+                        <Ic n="del" />
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+                {t.steps.length < 6 && (
+                  <button
+                    type="button"
+                    className="adm-add"
+                    onClick={() => update((x) => void x.pages.services.steps.push({ title: '', detail: '' }))}
+                  >
+                    <Ic n="plus" />
+                    Add step
+                  </button>
+                )}
+              </div>
+            )}
+            <p className="adm-muted adm-pages-note">
+              <Ic n="info" />
+              Leave a field empty to use the original text.
+            </p>
+          </div>
+          <PageSections page={key} />
         </div>
         <aside className="adm-pages-pv" aria-label="Sketch of the page heading">
           <div className="adm-pages-pvbar">

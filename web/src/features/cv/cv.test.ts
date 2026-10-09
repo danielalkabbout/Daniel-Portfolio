@@ -39,7 +39,15 @@ describe('CV model', () => {
 
   it('includes every visible project and picks up new ones', () => {
     const site = clone(fallbackContent);
-    site.projects.push({ ...site.projects[0], id: 'new', title: 'New project', tags: ['Go'], github: '', live: '', visible: true });
+    site.projects.push({
+      ...site.projects[0],
+      id: 'new',
+      title: 'New project',
+      tags: ['Go'],
+      github: '',
+      live: '',
+      visible: true,
+    });
     site.projects.push({ ...site.projects[0], id: 'off', title: 'Hidden project', visible: false });
     const heads = buildCv(site)
       .sections.find((s) => s.title === 'Projects')!
@@ -95,7 +103,9 @@ describe('CV settings from the studio', () => {
     site.cv.headline = [];
     const fallback = buildCv(site);
     expect(text(fallback.headline)).toBe('AI Software Engineer (C#/.NET)');
-    expect(text(fallback.sections.find((s) => s.key === 'summary')!.lines![0])).toContain('AI Software Engineer and Technical Lead');
+    expect(text(fallback.sections.find((s) => s.key === 'summary')!.lines![0])).toContain(
+      'AI Software Engineer and Technical Lead',
+    );
   });
 
   it('leaves out projects and roles switched off for the CV', () => {

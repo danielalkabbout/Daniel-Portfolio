@@ -100,6 +100,23 @@ export const cvSchema = z.object({
   sections: z.array(cvSectionSchema).default([]),
 });
 
+/** A card inside a page section: a "what I'm working on" item, a button, a step. */
+export const pageCardSchema = z.object({
+  label: z.string().default(''),
+  title: z.string().default(''),
+  text: z.string().default(''),
+  tags: z.array(z.string()).default([]),
+  stage: z.enum(['', 'now', 'next', 'later']).catch('').default(''),
+});
+
+/** A named section of a page: heading, line under it, and optional words or cards. */
+export const pageSectionSchema = z.object({
+  title: z.string().default(''),
+  intro: z.string().default(''),
+  words: z.array(z.string()).default([]),
+  cards: z.array(pageCardSchema).default([]),
+});
+
 /** Editable text blocks of one page. Each page uses the blocks it needs. */
 export const pageTextSchema = z.object({
   kicker: z.string().default(''),
@@ -110,6 +127,7 @@ export const pageTextSchema = z.object({
   paragraphs: z.array(z.string()).default([]),
   items: z.array(z.string()).default([]),
   steps: z.array(textItem).default([]),
+  sections: z.record(z.string(), pageSectionSchema).default({}),
 });
 
 export const pagesSchema = z.object({
@@ -148,5 +166,7 @@ export type Service = z.infer<typeof serviceSchema>;
 export type CvSettings = z.infer<typeof cvSchema>;
 export type CvSection = z.infer<typeof cvSectionSchema>;
 export type PageText = z.infer<typeof pageTextSchema>;
+export type PageSection = z.infer<typeof pageSectionSchema>;
+export type PageCard = z.infer<typeof pageCardSchema>;
 export type Pages = z.infer<typeof pagesSchema>;
 export type PageKey = keyof Pages;

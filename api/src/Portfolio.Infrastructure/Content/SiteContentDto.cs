@@ -68,6 +68,27 @@ public sealed class PageTextDto
     public List<string> Paragraphs { get; set; } = [];
     public List<string> Items { get; set; } = [];
     public List<TextItemDto> Steps { get; set; } = [];
+    /// <summary>Named sections of the page (home "now", "reel"...). Empty fields fall back to the site's built-in text.</summary>
+    public Dictionary<string, PageSectionDto> Sections { get; set; } = [];
+}
+
+/// <summary>One section of a page: a heading, a line under it, optional words and cards.</summary>
+public sealed class PageSectionDto
+{
+    public string Title { get; set; } = "";
+    public string Intro { get; set; } = "";
+    public List<string> Words { get; set; } = [];
+    public List<PageCardDto> Cards { get; set; } = [];
+}
+
+public sealed class PageCardDto
+{
+    public string Label { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Text { get; set; } = "";
+    public List<string> Tags { get; set; } = [];
+    /// <summary>For status cards: "now", "next", "later", or empty.</summary>
+    public string Stage { get; set; } = "";
 }
 
 public sealed class ProfileDto

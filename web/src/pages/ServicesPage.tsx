@@ -230,8 +230,8 @@ export default function ServicesPage() {
       <section className="flow-sec">
         <div className="wrap">
           <div className="head">
-            <h2>How we'd work together</h2>
-            <p>The same process I use with clients at SoftFlow.</p>
+            <h2>{text.sections.process.title}</h2>
+            {text.sections.process.intro && <p>{text.sections.process.intro}</p>}
           </div>
           <ol className="flow" id="flow" ref={flowRef}>
             {text.steps.map((st, i) => (
@@ -255,7 +255,7 @@ export default function ServicesPage() {
                 <span>I read every one and reply personally.</span>
               </p>
             </div>
-            <h2>Request a service</h2>
+            <h2>{text.sections.request.title}</h2>
             <p>
               {API_ENABLED
                 ? 'Three quick steps, and your request lands straight in my inbox. Prefer to talk directly?'

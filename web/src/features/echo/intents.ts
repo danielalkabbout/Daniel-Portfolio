@@ -395,7 +395,7 @@ export function buildIntents(c: EchoContext): Intent[] {
     {
       id: 'social',
       k: ['social media', 'working on now', 'currently', 'right now', 'latest', 'recent'],
-      a: "Right now he's building Azure OpenAI features for an AI-enabled social media platform: account insights, best-time-to-post recommendations and competitor analysis. Next on his list is a money tracker for the web, iOS and Android, then a permission-aware document AI that only answers from files the user is allowed to open.",
+      a: "Right now he's building Azure OpenAI features for an AI-enabled social media platform: account insights, best-time-to-post recommendations and competitor analysis. Next on his list is a money tracker for the web, iOS and Android, then a WhatsApp AI agent platform that lets any business connect its own documents and number.",
       f: ['Current role?', 'His AI agents'],
     },
     {
