@@ -4063,6 +4063,118 @@ kbd {
   width: 18px;
   height: 18px;
 }
+button.pj-link {
+  font-family: inherit;
+  cursor: pointer;
+}
+.pj-req {
+  border-style: dashed;
+}
+.pj-req-box {
+  position: relative;
+  flex-basis: 100%;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  animation: pj-req-in 0.25s ease-out;
+}
+@keyframes pj-req-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.pj-req-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pj-req-h b {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.pj-req-h svg {
+  width: 17px;
+  height: 17px;
+  color: var(--sky);
+}
+.pj-req-x {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.pj-req-x:hover {
+  color: var(--ink);
+}
+.pj-req-note,
+.pj-req-box.done p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.pj-req-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.pj-req-box label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.pj-req-box label em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--muted);
+}
+.pj-req-box input,
+.pj-req-box textarea {
+  font: inherit;
+  font-weight: 400;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+}
+.pj-req-box input:focus-visible,
+.pj-req-box textarea:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 1px;
+}
+.pj-req-box .err {
+  color: #e5484d;
+  font-weight: 500;
+  font-size: 0.82rem;
+  margin: 0;
+}
+.pj-req-box .btn {
+  justify-self: start;
+}
+.pj-req-box.done {
+  border-color: color-mix(in srgb, var(--mint) 45%, var(--line));
+}
+@media (max-width: 560px) {
+  .pj-req-row {
+    grid-template-columns: 1fr;
+  }
+  .pj-req-box .btn {
+    justify-self: stretch;
+  }
+}
 .seg {
   display: inline-flex;
   gap: 0.25rem;

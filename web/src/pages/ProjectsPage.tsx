@@ -8,6 +8,7 @@ import { ArrowUpRight, GitHubIcon, Icon } from '../lib/icons';
 import { DEMOS } from '../features/projects/demos';
 import type { Project } from '../types/content';
 import { pageText } from '../content/defaults';
+import { CodeRequest } from '../features/projects/CodeRequest';
 
 function ProjectArticle({ p }: { p: Project }) {
   const demo = p.demo ? DEMOS[p.demo] : undefined;
@@ -42,22 +43,21 @@ function ProjectArticle({ p }: { p: Project }) {
               <span key={t}>{t}</span>
             ))}
           </div>
-          {(p.github || p.live) && (
-            <div className="pj-links">
-              {p.github && (
-                <a className="pj-link" href={p.github} target="_blank" rel="noopener">
-                  <GitHubIcon />
-                  Code on GitHub
-                </a>
-              )}
-              {p.live && (
-                <a className="pj-link" href={p.live} target="_blank" rel="noopener">
-                  <ArrowUpRight />
-                  Live site
-                </a>
-              )}
-            </div>
-          )}
+          <div className="pj-links">
+            {p.github && (
+              <a className="pj-link" href={p.github} target="_blank" rel="noopener">
+                <GitHubIcon />
+                Code on GitHub
+              </a>
+            )}
+            {p.live && (
+              <a className="pj-link" href={p.live} target="_blank" rel="noopener">
+                <ArrowUpRight />
+                Live site
+              </a>
+            )}
+            {!p.github && <CodeRequest project={p.title} />}
+          </div>
         </div>
       </div>
     </article>
