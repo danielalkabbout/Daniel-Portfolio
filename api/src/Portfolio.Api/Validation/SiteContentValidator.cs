@@ -172,6 +172,42 @@ public partial class SiteContentValidator : AbstractValidator<SiteContentDto>
                 t.RuleFor(x => x.Title).NotEmpty().MaximumLength(60);
                 t.RuleFor(x => x.Detail).MaximumLength(300);
             });
+            RuleFor(x => x.Sections).NotNull()
+                .Must(d => d.Count <= 24).WithMessage("Use at most 24 sections on a page.")
+                .Must(d => d.Keys.All(k => SectionKeyRegex().IsMatch(k))).WithMessage("Unknown section name.");
+            RuleForEach(x => x.Sections).ChildRules(kv => kv.RuleFor(x => x.Value).NotNull().SetValidator(new PageSectionValidator()));
+            RuleFor(x => x.Order).NotNull()
+                .Must(l => l.Count <= 24 && l.Distinct().Count() == l.Count && l.All(k => SectionKeyRegex().IsMatch(k)))
+                .WithMessage("The section order lists an unknown or repeated section.");
+            RuleFor(x => x.Hidden).NotNull()
+                .Must(l => l.Count <= 24 && l.All(k => SectionKeyRegex().IsMatch(k)))
+                .WithMessage("Unknown hidden section.");
+        }
+    }
+
+    [GeneratedRegex("^[a-z][a-zA-Z0-9]{0,39}$")]
+    private static partial Regex SectionKeyRegex();
+
+    private static readonly HashSet<string> Stages = ["", "now", "next", "later"];
+
+    private sealed class PageSectionValidator : AbstractValidator<PageSectionDto>
+    {
+        public PageSectionValidator()
+        {
+            RuleFor(x => x.Title).MaximumLength(120);
+            RuleFor(x => x.Intro).MaximumLength(400);
+            RuleFor(x => x.Words).NotNull().Must(l => l.Count <= 30).WithMessage("Use at most 30 words.");
+            RuleForEach(x => x.Words).MaximumLength(40);
+            RuleFor(x => x.Cards).NotNull().Must(l => l.Count <= 8).WithMessage("Use at most 8 cards.");
+            RuleForEach(x => x.Cards).ChildRules(c =>
+            {
+                c.RuleFor(x => x.Label).MaximumLength(80);
+                c.RuleFor(x => x.Title).MaximumLength(120);
+                c.RuleFor(x => x.Text).MaximumLength(600);
+                c.RuleFor(x => x.Tags).NotNull().Must(l => l.Count <= 10).WithMessage("Use at most 10 tags.");
+                c.RuleForEach(x => x.Tags).MaximumLength(40);
+                c.RuleFor(x => x.Stage).Must(v => Stages.Contains(v ?? "")).WithMessage("Unknown status.");
+            });
         }
     }
 

@@ -30,7 +30,7 @@ function counts(d: SiteContent): Record<CvSectionKey, string> {
   };
 }
 
-function Switch({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) {
+export function Switch({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) {
   return (
     <label className="adm-mini-sw" title={label}>
       <input type="checkbox" checked={on} onChange={(e) => set(e.target.checked)} aria-label={label} />

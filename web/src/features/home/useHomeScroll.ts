@@ -12,7 +12,7 @@ function pinProgress(el: HTMLElement) {
  * Scroll-driven effects on the home page: the hero fades out, manifesto words light up,
  * the agent story steps through, the project reel slides sideways and the marquee drifts.
  */
-export function useHomeScroll(rootRef: RefObject<HTMLElement | null>, reelCount: number) {
+export function useHomeScroll(rootRef: RefObject<HTMLElement | null>, reelCount: number, layout = '') {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
@@ -108,5 +108,5 @@ export function useHomeScroll(rootRef: RefObject<HTMLElement | null>, reelCount:
       removeEventListener('scroll', req);
       removeEventListener('resize', onResize);
     };
-  }, [rootRef, reelCount]);
+  }, [rootRef, reelCount, layout]);
 }

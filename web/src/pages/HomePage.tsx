@@ -7,10 +7,9 @@ import { NetCanvas } from '../features/home/NetCanvas';
 import { useHomeScroll } from '../features/home/useHomeScroll';
 import { ArrowRight, Icon } from '../lib/icons';
 import { reduceMotion } from '../lib/env';
-import { pageText } from '../content/defaults';
+import { pageLayout, pageText } from '../content/defaults';
+import type { PageCard } from '../types/content';
 
-const MARQ1 = ['AI agents', 'WhatsApp bots', 'Websites', 'Mobile apps', 'SharePoint', 'Backend APIs'];
-const MARQ2 = ['Azure OpenAI', 'Copilot Studio', 'Microsoft Teams', 'C# and .NET', 'Spring Boot', 'React'];
 const KEY_WORD = /^(disappears|AI|agents,?|WhatsApp|bots,?|web|mobile|apps|never)/;
 const REEL_COLORS: [string, string][] = [
   ['sky', 'mint'],
@@ -110,6 +109,9 @@ function useCounters(ref: React.RefObject<HTMLElement | null>) {
 export default function HomePage() {
   const site = useSite();
   const text = pageText(site, 'home');
+  const sec = text.sections;
+  const [ctaServices, ctaAbout] = sec.hero.cards;
+  const reelEnd = sec.reel.cards[0];
   const p = site.profile;
   const heroRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -118,7 +120,152 @@ export default function HomePage() {
   const reel = site.projects.filter((x) => x.visible !== false && x.home !== false);
 
   useCounters(proofRef);
-  useHomeScroll(pageRef, reel.length);
+  const layout = pageLayout(site, 'home');
+  useHomeScroll(pageRef, reel.length, layout.join());
+
+  const blocks: Record<string, React.ReactNode> = {
+    strip: (
+      <div className="strip" aria-label={sec.strip.title}>
+        <div className="wrap strip-row">
+          <p>{sec.strip.title}</p>
+          <div className="strip-view">
+            <div className="strip-track">
+              {[0, 1].map((copy) => (
+                <ul key={copy} aria-hidden={copy === 1 || undefined}>
+                  {text.items.flatMap((s) => [
+                    <li key={s}>{s}</li>,
+                    <li key={`${s}-dot`} className="dot" aria-hidden="true">
+                      ✦
+                    </li>,
+                  ])}
+                </ul>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+    mani: (
+      <section className="mani" id="mani" aria-label="About my work">
+        <div className="mani-in">
+          <div className="wrap">
+            <p className="mani-text" id="maniText">
+              {text.lead.split(' ').map((w, i) => (
+                <Fragment key={i}>
+                  <span className={KEY_WORD.test(w) ? 'w key' : 'w'}>{w}</span>{' '}
+                </Fragment>
+              ))}
+            </p>
+          </div>
+        </div>
+      </section>
+    ),
+    agents: <StoryPin title={sec.agents.title} steps={sec.agents.cards} />,
+    proof: (
+      <section>
+        <div className="wrap">
+          <div className="head">
+            <h2>{sec.proof.title}</h2>
+            {sec.proof.intro && <p>{sec.proof.intro}</p>}
+          </div>
+          <div className="proof" ref={proofRef}>
+            {site.highlights.map((h, i) => (
+              <div key={i}>
+                <Counter n={h.n} />
+                <span>{h.t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ),
+    reel: (
+      <section className="reel" id="reel" aria-label="Selected projects">
+        <div className="reel-in">
+          <div className="wrap reel-head">
+            <h2>{sec.reel.title}</h2>
+            {sec.reel.intro && <p>{sec.reel.intro}</p>}
+          </div>
+          <div className="reel-track" id="reelTrack">
+            {reel.map((x, i) => {
+              const [c1, c2] = REEL_COLORS[i % REEL_COLORS.length];
+              return (
+                <Link
+                  key={x.id}
+                  className="rc"
+                  to={`/projects/${x.id}`}
+                  style={{ '--c1': `var(--${c1})`, '--c2': `var(--${c2})` } as React.CSSProperties}
+                >
+                  <div className="rc-art">
+                    <Icon name={x.icon || x.demo} sw={1.6} />
+                  </div>
+                  <h3>{x.title}</h3>
+                  <p>{x.reel || x.summary}</p>
+                  <span className="rc-st">{x.tags.slice(0, 3).join(', ')}</span>
+                </Link>
+              );
+            })}
+            <Link className="rc rc-end" to="/projects">
+              <h3>{reelEnd.title}</h3>
+              <p>{reelEnd.text}</p>
+              <span className="btn primary">{reelEnd.label}</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+    ),
+    marquee: (
+      <div className="marq" aria-hidden="true">
+        {[
+          { words: sec.marqueeTop.words, speed: 0.35, cls: 'mrow' },
+          { words: sec.marqueeBottom.words, speed: -0.28, cls: 'mrow ol' },
+        ].map((row) => (
+          <div key={row.cls} className={row.cls} data-speed={row.speed}>
+            {[...row.words, ...row.words].flatMap((w, i) => [<span key={i}>{w}</span>, <b key={`b${i}`}>✦</b>])}
+          </div>
+        ))}
+      </div>
+    ),
+    now: (
+      <section>
+        <div className="wrap">
+          <div className="head">
+            <h2>{sec.now.title}</h2>
+            {sec.now.intro && <p>{sec.now.intro}</p>}
+          </div>
+          <div className="teaser">
+            {sec.now.cards.map((x, i) => (
+              <article key={i} data-stage={x.stage || undefined}>
+                {x.label && (
+                  <span className="who">
+                    {x.stage && <i aria-hidden="true" />}
+                    {x.label}
+                  </span>
+                )}
+                <h3>{x.title}</h3>
+                {x.text && <p>{x.text}</p>}
+                {x.tags.length > 0 && (
+                  <ul className="teaser-tags" aria-label="Built with">
+                    {x.tags.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </div>
+          <div className="more">
+            <Link className="btn primary" to="/projects">
+              See my projects
+            </Link>
+            <Link className="btn" to="/experience">
+              See my experience
+            </Link>
+          </div>
+        </div>
+      </section>
+    ),
+  };
 
   return (
     <Page name="home" title="Daniel Al Kabbout, AI Software Engineer">
@@ -151,187 +298,34 @@ export default function HomePage() {
               <div className="choices">
                 <Link className="choice primary" to="/services">
                   <b>
-                    Request my services
+                    {ctaServices.title}
                     <ArrowRight />
                   </b>
-                  <span>AI agents, WhatsApp bots, websites, mobile apps and more</span>
+                  <span>{ctaServices.text}</span>
                 </Link>
                 <Link className="choice" to="/about">
                   <b>
-                    Get to know me
+                    {ctaAbout.title}
                     <ArrowRight />
                   </b>
-                  <span>My background, skills and education</span>
+                  <span>{ctaAbout.text}</span>
                 </Link>
               </div>
             </div>
             <div>
               <EchoChat />
-              <p className="chat-note">Type a question or tap a suggestion. Echo answers only from Daniel's CV.</p>
+              <p className="chat-note">{sec.hero.intro}</p>
             </div>
           </div>
         </div>
 
-        <div className="strip" aria-label="What I work on">
-          <div className="wrap strip-row">
-            <p>What I work on</p>
-            <div className="strip-view">
-              <div className="strip-track">
-                {[0, 1].map((copy) => (
-                  <ul key={copy} aria-hidden={copy === 1 || undefined}>
-                    {text.items.flatMap((s) => [
-                      <li key={s}>{s}</li>,
-                      <li key={`${s}-dot`} className="dot" aria-hidden="true">
-                        ✦
-                      </li>,
-                    ])}
-                  </ul>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <section className="mani" id="mani" aria-label="About my work">
-          <div className="mani-in">
-            <div className="wrap">
-              <p className="mani-text" id="maniText">
-                {text.lead.split(' ').map((w, i) => (
-                  <Fragment key={i}>
-                    <span className={KEY_WORD.test(w) ? 'w key' : 'w'}>{w}</span>{' '}
-                  </Fragment>
-                ))}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <StoryPin />
-
-        <section>
-          <div className="wrap">
-            <div className="head">
-              <h2>Since September 2024</h2>
-              <p>Delivered at SoftFlow Group, for internal teams and clients.</p>
-            </div>
-            <div className="proof" ref={proofRef}>
-              {site.highlights.map((h, i) => (
-                <div key={i}>
-                  <Counter n={h.n} />
-                  <span>{h.t}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="reel" id="reel" aria-label="Selected projects">
-          <div className="reel-in">
-            <div className="wrap reel-head">
-              <h2>Selected projects</h2>
-              <p>Keep scrolling to move through them.</p>
-            </div>
-            <div className="reel-track" id="reelTrack">
-              {reel.map((x, i) => {
-                const [c1, c2] = REEL_COLORS[i % REEL_COLORS.length];
-                return (
-                  <Link
-                    key={x.id}
-                    className="rc"
-                    to={`/projects/${x.id}`}
-                    style={{ '--c1': `var(--${c1})`, '--c2': `var(--${c2})` } as React.CSSProperties}
-                  >
-                    <div className="rc-art">
-                      <Icon name={x.icon || x.demo} sw={1.6} />
-                    </div>
-                    <h3>{x.title}</h3>
-                    <p>{x.reel || x.summary}</p>
-                    <span className="rc-st">{x.tags.slice(0, 3).join(', ')}</span>
-                  </Link>
-                );
-              })}
-              <Link className="rc rc-end" to="/projects">
-                <h3>See every project in detail</h3>
-                <p>Diagrams, a live pipeline demo and links to the code.</p>
-                <span className="btn primary">Open projects</span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <div className="marq" aria-hidden="true">
-          {[
-            { words: MARQ1, speed: 0.35, cls: 'mrow' },
-            { words: MARQ2, speed: -0.28, cls: 'mrow ol' },
-          ].map((row) => (
-            <div key={row.cls} className={row.cls} data-speed={row.speed}>
-              {[...row.words, ...row.words].flatMap((w, i) => [<span key={i}>{w}</span>, <b key={`b${i}`}>✦</b>])}
-            </div>
-          ))}
-        </div>
-
-        <section>
-          <div className="wrap">
-            <div className="head">
-              <h2>What I'm working on</h2>
-              <p>What I'm building now, and what comes next.</p>
-            </div>
-            <div className="teaser">
-              {NOW_NEXT.map((x) => (
-                <article key={x.title} data-stage={x.stage}>
-                  <span className="who">
-                    <i aria-hidden="true" />
-                    {x.label}
-                  </span>
-                  <h3>{x.title}</h3>
-                  <p>{x.text}</p>
-                  <ul className="teaser-tags" aria-label="Built with">
-                    {x.tags.map((t) => (
-                      <li key={t}>{t}</li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-            <div className="more">
-              <Link className="btn primary" to="/projects">
-                See my projects
-              </Link>
-              <Link className="btn" to="/experience">
-                See my experience
-              </Link>
-            </div>
-          </div>
-        </section>
+        {layout.map((k) => (
+          <Fragment key={k}>{blocks[k]}</Fragment>
+        ))}
       </div>
     </Page>
   );
 }
-
-/** "What I'm working on": the current project first, then what is planned next. */
-const NOW_NEXT = [
-  {
-    stage: 'now',
-    label: 'In progress · SoftFlow Group',
-    title: 'AI for a social media platform',
-    text: 'Azure OpenAI features that turn social media and competitor data into account insights, best-time-to-post recommendations and competitor analysis, on a JWT-secured ASP.NET Core API that keeps every account’s data separate.',
-    tags: ['Azure OpenAI', 'ASP.NET Core', 'SQL Server'],
-  },
-  {
-    stage: 'next',
-    label: 'Up next · Web, iOS and Android',
-    title: 'Money tracker',
-    text: 'A personal finance app on the web and on phones: log income and spending in seconds, set monthly budgets, and see where the money goes. One API keeps every device in sync.',
-    tags: ['ASP.NET Core', 'React', 'Mobile', 'PostgreSQL'],
-  },
-  {
-    stage: 'later',
-    label: 'Planned · Open source',
-    title: 'Permission-aware document AI',
-    text: 'A retrieval-augmented AI service for company documents that only answers from files the person asking is allowed to open, cites its sources, and is tested against a set of known questions before each release.',
-    tags: ['.NET', 'RAG', 'pgvector', 'LLM evaluation'],
-  },
-];
 
 const DOC_ICON = (
   <svg
@@ -353,32 +347,19 @@ const DB_ICON = (
   </svg>
 );
 
-const STEPS = [
-  ['A question comes in', 'Staff ask in plain language, inside Microsoft Teams or WhatsApp. No new app to learn.'],
-  [
-    'The agent finds the right data',
-    'It searches SharePoint documents and SQL Server data using retrieval-augmented generation.',
-  ],
-  [
-    'It answers, with the source',
-    'The reply is grounded in your own documents, so people can check where it came from.',
-  ],
-  ["Scoped before it's built", 'We agree up front on what data it can access, who uses it, and what it should not do.'],
-];
-
 /** The pinned "how my agents work" story; useHomeScroll drives the steps as you scroll. */
-function StoryPin() {
+function StoryPin({ title, steps }: { title: string; steps: PageCard[] }) {
   return (
     <section className="story-pin" id="storyPin" aria-label="How one of my AI agents answers a question">
       <div className="sp-in">
         <div className="wrap sp-grid">
           <div className="sp-text">
-            <p className="title-line">How my agents work</p>
+            <p className="title-line">{title}</p>
             <ol className="st-list" id="stList">
-              {STEPS.map(([h, t], i) => (
-                <li key={h} data-s={i} className={i === 0 ? 'on' : undefined}>
-                  <h3>{h}</h3>
-                  <p>{t}</p>
+              {steps.map((st, i) => (
+                <li key={i} data-s={i} className={i === 0 ? 'on' : undefined}>
+                  <h3>{st.title}</h3>
+                  <p>{st.text}</p>
                 </li>
               ))}
             </ol>

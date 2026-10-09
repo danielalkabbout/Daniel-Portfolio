@@ -1,4 +1,4 @@
-import type { CvSettings, PageKey, PageText, Pages, SiteContent } from '../types/content';
+import type { CvSettings, PageCard, PageKey, PageSection, PageText, Pages, SiteContent } from '../types/content';
 
 /**
  * The site's built-in text. Anything left empty in the studio falls back to these, so the site never
@@ -42,6 +42,113 @@ export const DEFAULT_CV: CvSettings = {
   sections: CV_SECTION_KEYS.map((key) => ({ key, title: CV_SECTION_TITLES[key], visible: true })),
 };
 
+const card = (c: Partial<PageCard>): PageCard => ({ label: '', title: '', text: '', tags: [], stage: '', ...c });
+const section = (x: Partial<PageSection>): PageSection => ({ title: '', intro: '', words: [], cards: [], ...x });
+
+/**
+ * The named sections of every page, with their built-in text. The studio's Page text tab edits these;
+ * a field left empty shows the text here.
+ */
+export const DEFAULT_SECTIONS: Record<PageKey, Record<string, PageSection>> = {
+  home: {
+    hero: section({
+      intro: "Type a question or tap a suggestion. Echo answers only from Daniel's CV.",
+      cards: [
+        card({ title: 'Request my services', text: 'AI agents, WhatsApp bots, websites, mobile apps and more' }),
+        card({ title: 'Get to know me', text: 'My background, skills and education' }),
+      ],
+    }),
+    strip: section({ title: 'What I work on' }),
+    agents: section({
+      title: 'How my agents work',
+      cards: [
+        card({
+          title: 'A question comes in',
+          text: 'Staff ask in plain language, inside Microsoft Teams or WhatsApp. No new app to learn.',
+        }),
+        card({
+          title: 'The agent finds the right data',
+          text: 'It searches SharePoint documents and SQL Server data using retrieval-augmented generation.',
+        }),
+        card({
+          title: 'It answers, with the source',
+          text: 'The reply is grounded in your own documents, so people can check where it came from.',
+        }),
+        card({
+          title: "Scoped before it's built",
+          text: 'We agree up front on what data it can access, who uses it, and what it should not do.',
+        }),
+      ],
+    }),
+    proof: section({
+      title: 'Since September 2024',
+      intro: 'Delivered at SoftFlow Group, for internal teams and clients.',
+    }),
+    reel: section({
+      title: 'Selected projects',
+      intro: 'Keep scrolling to move through them.',
+      cards: [
+        card({
+          title: 'See every project in detail',
+          text: 'Diagrams, a live pipeline demo and links to the code.',
+          label: 'Open projects',
+        }),
+      ],
+    }),
+    marqueeTop: section({
+      words: ['AI agents', 'WhatsApp bots', 'Websites', 'Mobile apps', 'SharePoint', 'Backend APIs'],
+    }),
+    marqueeBottom: section({
+      words: ['Azure OpenAI', 'Copilot Studio', 'Microsoft Teams', 'C# and .NET', 'Spring Boot', 'React'],
+    }),
+    now: section({
+      title: "What I'm working on",
+      intro: "What I'm building now, and what comes next.",
+      cards: [
+        card({
+          stage: 'now',
+          label: 'In progress · SoftFlow Group',
+          title: 'AI for a social media platform',
+          text: 'Azure OpenAI features that turn social media and competitor data into account insights, best-time-to-post recommendations and competitor analysis, on a JWT-secured ASP.NET Core API that keeps every account’s data separate.',
+          tags: ['Azure OpenAI', 'ASP.NET Core', 'SQL Server'],
+        }),
+        card({
+          stage: 'next',
+          label: 'Up next · Web, iOS and Android',
+          title: 'Money tracker',
+          text: 'A personal finance app on the web and on phones: log income and spending in seconds, set monthly budgets, and see where the money goes. One API keeps every device in sync.',
+          tags: ['ASP.NET Core', 'React', 'Mobile', 'PostgreSQL'],
+        }),
+        card({
+          stage: 'later',
+          label: 'Planned · Side project',
+          title: 'WhatsApp AI agent platform',
+          text: 'A multi-tenant service where any business connects its WhatsApp number and its own documents, and gets an AI agent that answers customers, books appointments and hands the chat to a person when needed.',
+          tags: ['ASP.NET Core', 'Azure OpenAI', 'WhatsApp Cloud API', 'Multi-tenant'],
+        }),
+      ],
+    }),
+  },
+  about: {
+    skills: section({ title: 'Skills', intro: 'Looking for something specific?' }),
+  },
+  experience: {
+    glance: section({ title: 'My path at a glance', intro: 'Each bar is a role.' }),
+    clients: section({ title: "Clients I've delivered for at SoftFlow" }),
+    story: section({ title: 'The full story', intro: 'Scroll down the timeline, newest first.' }),
+  },
+  projects: {},
+  services: {
+    process: section({ title: "How we'd work together", intro: 'The same process I use with clients at SoftFlow.' }),
+    request: section({ title: 'Request a service' }),
+  },
+  cv: {},
+  footer: {},
+};
+
+/** Sections whose cards are a fixed set (buttons, the four agent steps): each card falls back on its own. */
+export const FIXED_CARDS = new Set(['home.hero', 'home.agents', 'home.reel']);
+
 const page = (p: Partial<PageText>): PageText => ({
   kicker: '',
   title: '',
@@ -51,8 +158,33 @@ const page = (p: Partial<PageText>): PageText => ({
   paragraphs: [],
   items: [],
   steps: [],
+  sections: {},
+  order: [],
+  hidden: [],
   ...p,
 });
+
+/** The blocks of a page that can be moved and switched off, in their built-in order. */
+export const PAGE_BLOCKS: Partial<Record<PageKey, { key: string; label: string }[]>> = {
+  home: [
+    { key: 'strip', label: 'Moving strip' },
+    { key: 'mani', label: 'Manifesto' },
+    { key: 'agents', label: 'How my agents work' },
+    { key: 'proof', label: 'Highlights' },
+    { key: 'reel', label: 'Selected projects' },
+    { key: 'marquee', label: 'Big moving words' },
+    { key: 'now', label: "What I'm working on" },
+  ],
+};
+
+/** A page's movable blocks in the order you set, without the ones switched off. */
+export function pageLayout(site: SiteContent, key: PageKey): string[] {
+  const known = (PAGE_BLOCKS[key] ?? []).map((b) => b.key);
+  const p = site.pages[key];
+  const set = (p.order ?? []).filter((k, i, a) => known.includes(k) && a.indexOf(k) === i);
+  const all = [...set, ...known.filter((k) => !set.includes(k))];
+  return all.filter((k) => !(p.hidden ?? []).includes(k));
+}
 
 export const DEFAULT_PAGES: Pages = {
   home: page({
@@ -122,6 +254,8 @@ export const DEFAULT_PAGES: Pages = {
   }),
 };
 
+for (const k of Object.keys(DEFAULT_SECTIONS) as PageKey[]) DEFAULT_PAGES[k].sections = DEFAULT_SECTIONS[k];
+
 const filled = <T>(v: T, fallback: T): T =>
   (Array.isArray(v) ? v.length > 0 : typeof v === 'string' ? v.trim() !== '' : v != null) ? v : fallback;
 
@@ -147,8 +281,41 @@ export function pageText(site: SiteContent, key: PageKey): PageText {
       p.steps.filter((x) => x.title.trim()),
       d.steps,
     ),
+    order: p.order ?? [],
+    hidden: p.hidden ?? [],
+    sections: Object.fromEntries(
+      Object.entries(DEFAULT_SECTIONS[key]).map(([k, ds]) => [
+        k,
+        mergeSection(p.sections?.[k], ds, FIXED_CARDS.has(`${key}.${k}`)),
+      ]),
+    ),
   };
 }
+
+function mergeSection(s: PageSection | undefined, d: PageSection, fixed: boolean): PageSection {
+  const words = (s?.words ?? []).filter((w) => w.trim());
+  const cards = (s?.cards ?? []).filter((c) => c.title.trim() || c.text.trim());
+  return {
+    title: filled(s?.title ?? '', d.title),
+    intro: filled(s?.intro ?? '', d.intro),
+    words: filled(words, d.words),
+    cards: fixed
+      ? d.cards.map((dc, i) => {
+          const c = s?.cards?.[i];
+          return {
+            ...dc,
+            label: filled(c?.label ?? '', dc.label),
+            title: filled(c?.title ?? '', dc.title),
+            text: filled(c?.text ?? '', dc.text),
+          };
+        })
+      : filled(cards, d.cards),
+  };
+}
+
+/** One section of a page, with the built-in text filling anything left empty. */
+export const pageSection = (site: SiteContent, key: PageKey, name: string): PageSection =>
+  pageText(site, key).sections[name] ?? section({});
 
 /** CV settings with empty fields replaced by the defaults, and any section missing from the list added at the end. */
 export function cvSettings(site: SiteContent): CvSettings {

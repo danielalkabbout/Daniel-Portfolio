@@ -300,6 +300,7 @@ function Timeline({ items }: { items: Role[] }) {
 export default function ExperiencePage() {
   const site = useSite();
   const text = pageText(site, 'experience');
+  const sec = text.sections;
   const tl = useTimeline(site);
   const months = tl.first ? monthIndex(null) - monthIndex(tl.first) + 1 : 0;
   const [fy, fm] = (tl.first || '2024-02').split('-');
@@ -343,18 +344,18 @@ export default function ExperiencePage() {
       <section className="xp-map-sec">
         <div className="wrap">
           <div className="head">
-            <h2>My path at a glance</h2>
+            <h2>{sec.glance.title}</h2>
             <p>
-              <span className="on-mouse">Each bar is a role. Hover for details, click to jump to it.</span>
+              <span className="on-mouse">{sec.glance.intro} Hover for details, click to jump to it.</span>
               <span className="on-touch">
-                Each bar is a role. Tap one to jump to it, and swipe the chart to see every year.
+                {sec.glance.intro} Tap one to jump to it, and swipe the chart to see every year.
               </span>
             </p>
           </div>
           <Gantt {...tl} />
           {site.clients.length > 0 && (
             <div className="clients">
-              <p>Clients I've delivered for at SoftFlow</p>
+              <p>{sec.clients.title}</p>
               <ul>
                 {site.clients.map((c) => (
                   <li key={c}>{c}</li>
@@ -368,8 +369,8 @@ export default function ExperiencePage() {
       <section className="xp-tl-sec">
         <div className="wrap">
           <div className="head">
-            <h2>The full story</h2>
-            <p>Scroll down the timeline, newest first.</p>
+            <h2>{sec.story.title}</h2>
+            {sec.story.intro && <p>{sec.story.intro}</p>}
           </div>
           <Timeline items={tl.items} />
         </div>

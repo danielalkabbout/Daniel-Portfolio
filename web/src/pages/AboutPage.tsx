@@ -68,6 +68,7 @@ function usePhotoParallax(ref: React.RefObject<HTMLElement | null>) {
 export default function AboutPage() {
   const site = useSite();
   const text = pageText(site, 'about');
+  const skillsHead = text.sections.skills;
   const photoRef = useRef<HTMLElement>(null);
   const [q, setQ] = useState('');
   usePhotoParallax(photoRef);
@@ -151,9 +152,9 @@ export default function AboutPage() {
       <section style={{ paddingTop: 0 }} id="skills">
         <div className="wrap">
           <div className="head">
-            <h2>Skills</h2>
+            <h2>{skillsHead.title}</h2>
             <div className="skill-search">
-              <label htmlFor="skillQ">Looking for something specific?</label>
+              <label htmlFor="skillQ">{skillsHead.intro}</label>
               <div className="sq">
                 <SearchIcon />
                 <input
