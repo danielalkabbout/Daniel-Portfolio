@@ -6,6 +6,10 @@ on:
     paths: ['web/**', '.github/workflows/web.yml']
   workflow_call:
 
+# The workflow only reads the code; it never writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

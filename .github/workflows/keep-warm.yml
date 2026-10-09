@@ -8,6 +8,10 @@ on:
     - cron: '*/14 3-20 * * *'
   workflow_dispatch:
 
+# The workflow only reads the code; it never writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   ping:
     if: vars.API_URL != ''

@@ -7,15 +7,8 @@ GET {{api}}/health
 GET {{api}}/api/content
 
 ###
-# @name login
-POST {{api}}/api/auth/login
-Content-Type: application/json
-
-{ "email": "you@example.com", "password": "your admin password" }
-
-###
-GET {{api}}/api/admin/requests
-Authorization: Bearer {{login.response.body.token}}
+# The studio signs in with SRP (the password never leaves the browser), so admin endpoints
+# can't be called from here. Sign in at /admin on the site and use the studio instead.
 
 ###
 POST {{api}}/api/requests
