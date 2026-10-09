@@ -274,27 +274,24 @@ export default function HomePage() {
           <div className="wrap">
             <div className="head">
               <h2>What I'm working on</h2>
-              <p>Recent work as AI Software Engineer and Technical Lead.</p>
+              <p>What I'm building now, and what comes next.</p>
             </div>
             <div className="teaser">
-              <article>
-                <span className="who">Microsoft Teams</span>
-                <h3>Two Copilot Studio agents</h3>
-                <p>They answer staff questions from SharePoint documents and SQL Server data, right inside Teams.</p>
-              </article>
-              <article>
-                <span className="who">The Net Holding</span>
-                <h3>WhatsApp bot and Meta verification</h3>
-                <p>
-                  Built on the WhatsApp Cloud API. I also took them through Meta Business Verification, fixing rejected
-                  documents and verifying the domain.
-                </p>
-              </article>
-              <article>
-                <span className="who">In progress</span>
-                <h3>AI for a social media product</h3>
-                <p>Adding AI features with Azure OpenAI to an enterprise social media product.</p>
-              </article>
+              {NOW_NEXT.map((x) => (
+                <article key={x.title} data-stage={x.stage}>
+                  <span className="who">
+                    <i aria-hidden="true" />
+                    {x.label}
+                  </span>
+                  <h3>{x.title}</h3>
+                  <p>{x.text}</p>
+                  <ul className="teaser-tags" aria-label="Built with">
+                    {x.tags.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
             </div>
             <div className="more">
               <Link className="btn primary" to="/projects">
@@ -310,6 +307,31 @@ export default function HomePage() {
     </Page>
   );
 }
+
+/** "What I'm working on": the current project first, then what is planned next. */
+const NOW_NEXT = [
+  {
+    stage: 'now',
+    label: 'In progress · SoftFlow Group',
+    title: 'AI for a social media platform',
+    text: 'Azure OpenAI features that turn social media and competitor data into account insights, best-time-to-post recommendations and competitor analysis, on a JWT-secured ASP.NET Core API that keeps every account’s data separate.',
+    tags: ['Azure OpenAI', 'ASP.NET Core', 'SQL Server'],
+  },
+  {
+    stage: 'next',
+    label: 'Up next · Web, iOS and Android',
+    title: 'Money tracker',
+    text: 'A personal finance app on the web and on phones: log income and spending in seconds, set monthly budgets, and see where the money goes. One API keeps every device in sync.',
+    tags: ['ASP.NET Core', 'React', 'Mobile', 'PostgreSQL'],
+  },
+  {
+    stage: 'later',
+    label: 'Planned · Open source',
+    title: 'Permission-aware document AI',
+    text: 'A retrieval-augmented AI service for company documents that only answers from files the person asking is allowed to open, cites its sources, and is tested against a set of known questions before each release.',
+    tags: ['.NET', 'RAG', 'pgvector', 'LLM evaluation'],
+  },
+];
 
 const DOC_ICON = (
   <svg
