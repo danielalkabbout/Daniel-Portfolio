@@ -18,4 +18,6 @@ public class Visit
     /// <summary>Mobile, Tablet or Desktop.</summary>
     public string Device { get; set; } = "";
     public string Visitor { get; set; } = "";
+    /// <summary>Code of the personal link the visit started from, or empty.</summary>
+    public string Ref { get; set; } = "";
 }

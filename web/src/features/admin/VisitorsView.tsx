@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../../api/client';
 import { useStudio } from './studio-state';
-import { Ic } from './ui';
+import { Ic, useUi } from './ui';
 import { Head } from './views';
 
 interface Count {
@@ -12,6 +12,7 @@ interface Count {
 
 interface VisitStats {
   days: number;
+  today: number;
   views: number;
   visitors: number;
   cvDownloads: number;
@@ -136,6 +137,226 @@ function TopList({
   );
 }
 
+interface LinkSession {
+  at: string;
+  lastAt: string;
+  device: string;
+  country: string;
+  source: string;
+  pages: string[];
+  cv: boolean;
+}
+
+interface PersonalLink {
+  id: number;
+  code: string;
+  label: string;
+  note: string;
+  createdAt: string;
+  visits: number;
+  sessions: number;
+  cv: boolean;
+  lastAt: string | null;
+  history: LinkSession[];
+}
+
+const ago = (iso: string) => {
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 90) return 'just now';
+  if (s < 3600) return `${Math.round(s / 60)} minutes ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} hours ago`;
+  if (s < 172800) return 'yesterday';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+};
+const when = (iso: string) =>
+  new Date(iso).toLocaleString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+/** Visitors today, for the badge next to the Visitors tab. */
+export function useVisitorsToday() {
+  const { data } = useQuery({
+    queryKey: ['admin', 'visits', 1],
+    queryFn: () => api<VisitStats>('/api/admin/visits?days=1'),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+  return data ? data.today : null;
+}
+
+/**
+ * Links made for one company or person. Send the link with an application; when they open it, you see
+ * when, on which device and country, and what they looked at (and get an email if alerts are on).
+ */
+function PersonalLinks({ pageName }: { pageName: (p: string) => string }) {
+  const { toast, ask } = useUi();
+  const qc = useQueryClient();
+  const [label, setLabel] = useState('');
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['admin', 'links'],
+    queryFn: () => api<PersonalLink[]>('/api/admin/links'),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+  const url = (code: string) => `${window.location.origin}/?r=${code}`;
+  const copy = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(url(code));
+      toast('Link copied');
+    } catch {
+      toast(url(code));
+    }
+  };
+
+  const create = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!label.trim()) return toast('Write who the link is for', 'err');
+    setBusy(true);
+    try {
+      const link = await api<PersonalLink>('/api/admin/links', {
+        method: 'POST',
+        body: { label: label.trim(), note: note.trim() },
+      });
+      setLabel('');
+      setNote('');
+      await qc.invalidateQueries({ queryKey: ['admin', 'links'] });
+      await copy(link.code);
+    } catch (err) {
+      toast((err as Error).message, 'err');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (l: PersonalLink) => {
+    if (
+      !(await ask({
+        title: `Delete the link for ${l.label}?`,
+        text: 'The link stops being tracked. Visits it already brought stay in your totals.',
+        ok: 'Delete',
+        danger: true,
+      }))
+    )
+      return;
+    try {
+      await api(`/api/admin/links/${l.id}`, { method: 'DELETE' });
+      qc.setQueryData<PersonalLink[]>(['admin', 'links'], (list) => list?.filter((x) => x.id !== l.id));
+      toast('Link deleted');
+    } catch (err) {
+      toast((err as Error).message, 'err');
+    }
+  };
+
+  return (
+    <section className="adm-card adm-links">
+      <div className="adm-links-h">
+        <div>
+          <h3>Personal links</h3>
+          <p className="adm-muted">
+            Make a link for each company or recruiter you contact. When they open it, you see when and what they looked
+            at here, and get an email if alerts are on.
+          </p>
+        </div>
+      </div>
+      <form className="adm-links-new" onSubmit={(e) => void create(e)}>
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          maxLength={80}
+          placeholder="Who is it for? e.g. Tradias, backend role"
+          aria-label="Who the link is for"
+        />
+        <input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          maxLength={200}
+          placeholder="Note (optional), e.g. sent with my CV on LinkedIn"
+          aria-label="Note"
+        />
+        <button type="submit" className="adm-btn primary" disabled={busy}>
+          <Ic n="plus" />
+          {busy ? 'Creating…' : 'Create and copy link'}
+        </button>
+      </form>
+
+      {isLoading ? (
+        <p className="adm-muted">Loading links…</p>
+      ) : error ? (
+        <p className="adm-warn">Could not load links: {(error as Error).message}</p>
+      ) : !data?.length ? (
+        <p className="adm-muted adm-links-empty">No links yet. Create one for the next application you send.</p>
+      ) : (
+        <ul className="adm-links-list">
+          {data.map((l) => (
+            <li key={l.id} className={l.lastAt ? 'opened' : undefined}>
+              <div className="adm-link-row">
+                <span className="adm-link-dot" aria-hidden="true" />
+                <div className="adm-link-main">
+                  <b>{l.label}</b>
+                  <small>
+                    {l.lastAt
+                      ? `Opened ${l.sessions} ${l.sessions === 1 ? 'time' : 'times'} · ${l.visits} pages · last ${ago(l.lastAt)}`
+                      : `Not opened yet · made ${ago(l.createdAt)}`}
+                    {l.note && ` · ${l.note}`}
+                  </small>
+                </div>
+                {l.cv && <span className="adm-link-cv">Downloaded your CV</span>}
+                <button type="button" className="adm-btn ghost adm-link-copy" onClick={() => void copy(l.code)}>
+                  <Ic n="copy" />
+                  <code>?r={l.code}</code>
+                </button>
+                <button
+                  type="button"
+                  className="adm-ibtn"
+                  aria-label={`Delete the link for ${l.label}`}
+                  onClick={() => void remove(l)}
+                >
+                  <Ic n="del" />
+                </button>
+              </div>
+              {l.history.length > 0 && (
+                <details className="adm-link-hist">
+                  <summary>What they looked at</summary>
+                  <ol>
+                    {l.history.map((h, i) => (
+                      <li key={i}>
+                        <span className="adm-link-when">
+                          {when(h.at)}
+                          <small>
+                            {[
+                              h.device,
+                              h.country && `${flag(h.country)} ${countryName(h.country)}`,
+                              h.source !== 'Direct' && h.source,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </small>
+                        </span>
+                        <span className="adm-link-path">
+                          {h.pages.map((p, k) => (
+                            <span key={k}>{pageName(p)}</span>
+                          ))}
+                          {h.cv && <span className="cv">Downloaded CV</span>}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 /** Anonymous visitor counts: how many people came, from where, and what they looked at. */
 export function VisitorsView() {
   const { d } = useStudio();
@@ -159,6 +380,7 @@ export function VisitorsView() {
           </button>
         }
       />
+      <PersonalLinks pageName={(p) => PAGE_NAMES[p] ?? (p.startsWith('/projects/') ? projectTitle(p.slice(10)) : p)} />
       <div className="adm-seg" role="tablist" aria-label="Time range">
         {RANGES.map((r) => (
           <button key={r} type="button" role="tab" aria-selected={days === r} onClick={() => setDays(r)}>

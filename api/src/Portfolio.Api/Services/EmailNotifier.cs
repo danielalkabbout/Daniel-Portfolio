@@ -65,6 +65,24 @@ public class EmailNotifier(HttpClient http, IOptions<EmailOptions> options, ILog
         return await SendAsync(subject, text, html, replyTo: r.Email, ct, $"request {r.Id}");
     }
 
+    /// <summary>"Tradias opened your portfolio": sent the first time a personal link is opened each day.</summary>
+    public Task<bool> NotifyLinkOpenedAsync(string label, string path, string country, string device, CancellationToken ct)
+    {
+        if (!IsConfigured) return Task.FromResult(false);
+        var where = string.Join(", ", new[] { device, country }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        var subject = $"{label} opened your portfolio";
+        var text = $"Someone opened your personal link for {label}.\nFirst page: {path}" +
+                   (where.Length > 0 ? $"\nFrom: {where}" : "") + $"\n\nSee what they looked at: {options.Value.StudioUrl}";
+        var html =
+            "<div style=\"font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:520px;color:#0b1324\">" +
+            $"<h2 style=\"margin:0 0 8px;font-size:20px\">{Enc(subject)}</h2>" +
+            $"<p style=\"margin:0 0 6px;font-size:15px\">Someone opened your personal link for <b>{Enc(label)}</b>.</p>" +
+            $"<p style=\"margin:0 0 16px;color:#5b6b82;font-size:14px\">First page: {Enc(path)}" +
+            (where.Length > 0 ? $" · {Enc(where)}" : "") + "</p>" +
+            $"<a href=\"{Enc(options.Value.StudioUrl)}\" style=\"color:#1c6fd1;font-size:14px\">See what they looked at in the studio</a></div>";
+        return SendAsync(subject, text, html, replyTo: null, ct, $"link {label}");
+    }
+
     /// <summary>A short email that proves the setup works, sent from the studio.</summary>
     public Task<bool> SendTestAsync(CancellationToken ct) =>
         IsConfigured

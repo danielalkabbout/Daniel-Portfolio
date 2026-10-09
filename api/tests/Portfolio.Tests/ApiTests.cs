@@ -128,6 +128,38 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task Personal_links_show_who_opened_the_site()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var admin = await AdminClientAsync();
+        admin.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        var created = await admin.PostAsJsonAsync("/api/admin/links", new { label = "Tradias, backend role" });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var link = await created.Content.ReadFromJsonAsync<JsonElement>(Json);
+        var code = link.GetProperty("code").GetString()!;
+        Assert.Matches("^[a-z0-9]{6}$", code);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/admin/links", new { label = "" })).StatusCode);
+
+        var visitor = factory.CreateClient();
+        visitor.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        visitor.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/140.0");
+        await visitor.PostAsJsonAsync("/api/track", new { kind = "view", path = "/", @ref = code });
+        await visitor.PostAsJsonAsync("/api/track", new { kind = "view", path = "/projects/whatsapp", @ref = code });
+        await visitor.PostAsJsonAsync("/api/track", new { kind = "cv", path = "/cv", @ref = code });
+        await visitor.PostAsJsonAsync("/api/track", new { kind = "view", path = "/", @ref = "nosuchcode" });
+
+        var links = await admin.GetFromJsonAsync<JsonElement>("/api/admin/links", Json);
+        var mine = links.EnumerateArray().Single(l => l.GetProperty("code").GetString() == code);
+        Assert.Equal(2, mine.GetProperty("visits").GetInt32());
+        Assert.True(mine.GetProperty("cv").GetBoolean());
+        var session = mine.GetProperty("history")[0];
+        Assert.Equal(new[] { "/", "/projects/whatsapp" }, session.GetProperty("pages").EnumerateArray().Select(p => p.GetString()!).ToArray());
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/admin/links")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/admin/links/{link.GetProperty("id").GetInt32()}")).StatusCode);
+    }
+
+    [SkippableFact]
     public async Task Invalid_content_is_rejected()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");
