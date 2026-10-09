@@ -22,7 +22,16 @@ interface Context {
 }
 
 // Headers a visitor must not be able to set themselves, plus hop-by-hop ones.
-const STRIP = ['x-edge-key', 'x-client-ip', 'x-forwarded-for', 'x-real-ip', 'forwarded', 'host', 'connection'];
+const STRIP = [
+  'x-edge-key',
+  'x-client-ip',
+  'x-visitor-country',
+  'x-forwarded-for',
+  'x-real-ip',
+  'forwarded',
+  'host',
+  'connection',
+];
 
 export async function onRequest({ request, env }: Context): Promise<Response> {
   const origin = (env.API_ORIGIN || env.VITE_API_URL || '').replace(/\/$/, '');
@@ -36,6 +45,9 @@ export async function onRequest({ request, env }: Context): Promise<Response> {
   const ip = request.headers.get('cf-connecting-ip');
   if (ip) headers.set('x-client-ip', ip);
   if (env.EDGE_KEY) headers.set('x-edge-key', env.EDGE_KEY);
+  // Country only (two letters), for the studio's anonymous visitor counts.
+  const country = (request as Request & { cf?: { country?: string } }).cf?.country;
+  if (country) headers.set('x-visitor-country', country);
 
   const init: RequestInit = {
     method: request.method,

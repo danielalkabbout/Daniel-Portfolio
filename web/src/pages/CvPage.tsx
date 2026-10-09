@@ -8,6 +8,7 @@ import { CvSheet, cvSlug as slug } from '../features/cv/CvSheet';
 import { pageText } from '../content/defaults';
 import { duration, monthIndex } from '../lib/dates';
 import { smooth } from '../lib/env';
+import { track } from '../lib/track';
 
 const HOST = typeof window !== 'undefined' ? window.location.host : '';
 
@@ -87,6 +88,7 @@ export default function CvPage() {
     try {
       const { downloadCvPdf } = await import('../features/cv/pdf');
       await downloadCvPdf(cv);
+      track('cv');
       say('CV downloaded');
     } catch {
       say('Could not make the PDF. Try again, or print the page and choose “Save as PDF”.');

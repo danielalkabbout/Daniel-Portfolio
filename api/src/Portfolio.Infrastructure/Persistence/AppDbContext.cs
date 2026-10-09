@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
     public DbSet<ContentDocument> ContentDocuments => Set<ContentDocument>();
+    public DbSet<Visit> Visits => Set<Visit>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -113,6 +114,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Entity).HasMaxLength(60);
             e.Property(x => x.EntityId).HasMaxLength(80);
             e.Property(x => x.Details).HasMaxLength(1000);
+            e.HasIndex(x => x.At);
+        });
+
+        b.Entity<Visit>(e =>
+        {
+            e.Property(x => x.Kind).HasMaxLength(10);
+            e.Property(x => x.Path).HasMaxLength(200);
+            e.Property(x => x.Source).HasMaxLength(60);
+            e.Property(x => x.Country).HasMaxLength(2);
+            e.Property(x => x.Device).HasMaxLength(10);
+            e.Property(x => x.Visitor).HasMaxLength(16);
             e.HasIndex(x => x.At);
         });
 

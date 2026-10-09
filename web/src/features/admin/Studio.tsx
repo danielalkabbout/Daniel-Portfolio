@@ -12,6 +12,7 @@ import { ActivityView, RequestsView, useRequests } from './RequestsView';
 import { AccountView } from './AccountView';
 import { CvView } from './CvView';
 import { PagesView } from './PagesView';
+import { VisitorsView } from './VisitorsView';
 import { withDefaults } from '../../content/defaults';
 import { Ic, useUi } from './ui';
 import { changedSections, clone, LABEL, StudioCtx, type DrawerSpec, type StudioApi, type Tab } from './studio-state';
@@ -237,6 +238,7 @@ export function Studio({ initial: raw }: { initial: SiteContent }) {
   const View = {
     overview: () => <OverviewView newRequests={newCount} />,
     requests: RequestsView,
+    visitors: VisitorsView,
     projects: ProjectsView,
     experience: ExperienceView,
     skills: SkillsView,

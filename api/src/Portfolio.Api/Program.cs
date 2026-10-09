@@ -104,6 +104,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<AdminAccounts>();
 builder.Services.AddSingleton<MediaStorage>();
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<VisitTracker>();
 builder.Services.AddHttpClient<TurnstileVerifier>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<EmailNotifier>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<DeployHook>(c => c.Timeout = TimeSpan.FromSeconds(15));
@@ -144,6 +145,10 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(
             ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = strictLimit, Window = TimeSpan.FromMinutes(1) }));
+    options.AddPolicy("track", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));
     options.AddPolicy("echo", ctx =>
         RateLimitPartition.GetFixedWindowLimiter(
             ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",

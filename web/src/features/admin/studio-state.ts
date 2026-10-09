@@ -17,6 +17,7 @@ export interface DrawerSpec {
 export type Tab =
   | 'overview'
   | 'requests'
+  | 'visitors'
   | 'projects'
   | 'experience'
   | 'skills'

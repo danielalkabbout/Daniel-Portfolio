@@ -108,6 +108,26 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task Visits_are_counted_anonymously_and_shown_to_the_admin()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148");
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/track", new { kind = "view", path = "/projects/booking", referrer = "https://www.linkedin.com/" })).StatusCode);
+        await client.PostAsJsonAsync("/api/track", new { kind = "cv", path = "/cv" });
+        await client.PostAsJsonAsync("/api/track", new { kind = "view", path = "/admin" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/admin/visits")).StatusCode);
+        var stats = await (await AdminClientAsync()).GetFromJsonAsync<JsonElement>("/api/admin/visits?days=7", Json);
+        Assert.True(stats.GetProperty("views").GetInt32() >= 1);
+        Assert.True(stats.GetProperty("cvDownloads").GetInt32() >= 1);
+        Assert.Contains(stats.GetProperty("sources").EnumerateArray(), s => s.GetProperty("name").GetString() == "LinkedIn");
+        Assert.Contains(stats.GetProperty("projects").EnumerateArray(), s => s.GetProperty("name").GetString() == "booking");
+        Assert.DoesNotContain(stats.GetProperty("pages").EnumerateArray(), s => s.GetProperty("name").GetString() == "/admin");
+    }
+
+    [SkippableFact]
     public async Task Invalid_content_is_rejected()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");
