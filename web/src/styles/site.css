@@ -10302,3 +10302,171 @@ main {
     padding-left: 2.2rem;
   }
 }
+
+/* ---------- studio: visitors ---------- */
+.adm-vstats > div {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.2rem;
+  min-width: 0;
+}
+.adm-vstats-word {
+  font-size: 1.7rem !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-bottom: 0.2rem;
+}
+.adm-vchart {
+  margin-top: 0.4rem;
+}
+.adm-vchart-tip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-height: 1.6rem;
+  margin-bottom: 0.6rem;
+}
+.adm-vchart-tip b {
+  font-size: 1.05rem;
+}
+.adm-vchart-tip span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.adm-vchart-plot {
+  position: relative;
+  height: 190px;
+  margin-left: 2rem;
+}
+.adm-vchart-grid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.adm-vchart-grid span {
+  position: relative;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+.adm-vchart-grid span:last-child {
+  border-top-color: var(--line);
+}
+.adm-vchart-grid span::before {
+  content: attr(data-v);
+  position: absolute;
+  right: calc(100% + 0.5rem);
+  top: -0.55rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.adm-vchart-bars {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  align-items: end;
+}
+.adm-vchart-bars button {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 1px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.adm-vchart-bars i {
+  display: block;
+  width: min(100%, 18px);
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: color-mix(in srgb, var(--sky) 70%, transparent);
+  transition: background 0.15s;
+}
+.adm-vchart-bars button:hover i,
+.adm-vchart-bars button:focus-visible i,
+.adm-vchart-bars button.on i {
+  background: var(--sky);
+}
+.adm-vchart-bars button:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.adm-vchart-x {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  margin: 0.4rem 0 0 2rem;
+}
+.adm-vchart-x span {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+  text-align: center;
+  overflow: visible;
+  min-width: 0;
+}
+.adm-vgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.adm-vlist ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.adm-vlist li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  overflow: hidden;
+}
+.adm-vlist-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--sky) 13%, transparent);
+  border-radius: 9px;
+}
+.adm-vlist-name {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adm-vlist li b {
+  position: relative;
+  font-variant-numeric: tabular-nums;
+}
+.adm-vnote {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-top: 1.25rem;
+  font-size: 0.84rem;
+}
+.adm-vnote svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 0.15rem;
+}
+@media (max-width: 620px) {
+  .adm-vchart-plot {
+    height: 150px;
+  }
+}

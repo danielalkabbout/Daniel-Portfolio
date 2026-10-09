@@ -1297,6 +1297,7 @@ export function DataView() {
 export const TABS: [Parameters<ReturnType<typeof useStudio>['show']>[0], string, IconName, string][] = [
   ['overview', 'Overview', 'overview', 'Start'],
   ['requests', 'Requests', 'requests', 'Start'],
+  ['visitors', 'Visitors', 'chart', 'Start'],
   ['projects', 'Projects', 'projects', 'Your work'],
   ['experience', 'Experience', 'experience', 'Your work'],
   ['skills', 'Skills', 'skills', 'Your work'],

@@ -28,6 +28,7 @@ const P = {
   about: '<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>',
   data: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/>',
   activity: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+  chart: '<path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/>',
   edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
   del: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
   up: '<path d="M12 19V5M6 11l6-6 6 6"/>',

@@ -9,6 +9,7 @@ import { Intro } from '../features/intro/Intro';
 import { useSiteEffects } from '../hooks/useSiteEffects';
 import { isPreview, PREVIEW_KEY, useContent } from '../api/content';
 import { store } from '../lib/env';
+import { usePageViews } from '../lib/track';
 
 function PreviewBanner() {
   if (!isPreview) return null;
@@ -36,6 +37,7 @@ function Shell() {
   const [palette, setPalette] = useState(false);
   const { dataUpdatedAt } = useContent();
   useSiteEffects(dataUpdatedAt);
+  usePageViews();
   return (
     <>
       <Intro />
