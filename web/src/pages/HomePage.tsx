@@ -7,7 +7,7 @@ import { NetCanvas } from '../features/home/NetCanvas';
 import { useHomeScroll } from '../features/home/useHomeScroll';
 import { ArrowRight, Icon } from '../lib/icons';
 import { reduceMotion } from '../lib/env';
-import { pageText } from '../content/defaults';
+import { pageLayout, pageText } from '../content/defaults';
 import type { PageCard } from '../types/content';
 
 const KEY_WORD = /^(disappears|AI|agents,?|WhatsApp|bots,?|web|mobile|apps|never)/;
@@ -120,7 +120,152 @@ export default function HomePage() {
   const reel = site.projects.filter((x) => x.visible !== false && x.home !== false);
 
   useCounters(proofRef);
-  useHomeScroll(pageRef, reel.length);
+  const layout = pageLayout(site, 'home');
+  useHomeScroll(pageRef, reel.length, layout.join());
+
+  const blocks: Record<string, React.ReactNode> = {
+    strip: (
+      <div className="strip" aria-label={sec.strip.title}>
+        <div className="wrap strip-row">
+          <p>{sec.strip.title}</p>
+          <div className="strip-view">
+            <div className="strip-track">
+              {[0, 1].map((copy) => (
+                <ul key={copy} aria-hidden={copy === 1 || undefined}>
+                  {text.items.flatMap((s) => [
+                    <li key={s}>{s}</li>,
+                    <li key={`${s}-dot`} className="dot" aria-hidden="true">
+                      ✦
+                    </li>,
+                  ])}
+                </ul>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+    mani: (
+      <section className="mani" id="mani" aria-label="About my work">
+        <div className="mani-in">
+          <div className="wrap">
+            <p className="mani-text" id="maniText">
+              {text.lead.split(' ').map((w, i) => (
+                <Fragment key={i}>
+                  <span className={KEY_WORD.test(w) ? 'w key' : 'w'}>{w}</span>{' '}
+                </Fragment>
+              ))}
+            </p>
+          </div>
+        </div>
+      </section>
+    ),
+    agents: <StoryPin title={sec.agents.title} steps={sec.agents.cards} />,
+    proof: (
+      <section>
+        <div className="wrap">
+          <div className="head">
+            <h2>{sec.proof.title}</h2>
+            {sec.proof.intro && <p>{sec.proof.intro}</p>}
+          </div>
+          <div className="proof" ref={proofRef}>
+            {site.highlights.map((h, i) => (
+              <div key={i}>
+                <Counter n={h.n} />
+                <span>{h.t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ),
+    reel: (
+      <section className="reel" id="reel" aria-label="Selected projects">
+        <div className="reel-in">
+          <div className="wrap reel-head">
+            <h2>{sec.reel.title}</h2>
+            {sec.reel.intro && <p>{sec.reel.intro}</p>}
+          </div>
+          <div className="reel-track" id="reelTrack">
+            {reel.map((x, i) => {
+              const [c1, c2] = REEL_COLORS[i % REEL_COLORS.length];
+              return (
+                <Link
+                  key={x.id}
+                  className="rc"
+                  to={`/projects/${x.id}`}
+                  style={{ '--c1': `var(--${c1})`, '--c2': `var(--${c2})` } as React.CSSProperties}
+                >
+                  <div className="rc-art">
+                    <Icon name={x.icon || x.demo} sw={1.6} />
+                  </div>
+                  <h3>{x.title}</h3>
+                  <p>{x.reel || x.summary}</p>
+                  <span className="rc-st">{x.tags.slice(0, 3).join(', ')}</span>
+                </Link>
+              );
+            })}
+            <Link className="rc rc-end" to="/projects">
+              <h3>{reelEnd.title}</h3>
+              <p>{reelEnd.text}</p>
+              <span className="btn primary">{reelEnd.label}</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+    ),
+    marquee: (
+      <div className="marq" aria-hidden="true">
+        {[
+          { words: sec.marqueeTop.words, speed: 0.35, cls: 'mrow' },
+          { words: sec.marqueeBottom.words, speed: -0.28, cls: 'mrow ol' },
+        ].map((row) => (
+          <div key={row.cls} className={row.cls} data-speed={row.speed}>
+            {[...row.words, ...row.words].flatMap((w, i) => [<span key={i}>{w}</span>, <b key={`b${i}`}>✦</b>])}
+          </div>
+        ))}
+      </div>
+    ),
+    now: (
+      <section>
+        <div className="wrap">
+          <div className="head">
+            <h2>{sec.now.title}</h2>
+            {sec.now.intro && <p>{sec.now.intro}</p>}
+          </div>
+          <div className="teaser">
+            {sec.now.cards.map((x, i) => (
+              <article key={i} data-stage={x.stage || undefined}>
+                {x.label && (
+                  <span className="who">
+                    {x.stage && <i aria-hidden="true" />}
+                    {x.label}
+                  </span>
+                )}
+                <h3>{x.title}</h3>
+                {x.text && <p>{x.text}</p>}
+                {x.tags.length > 0 && (
+                  <ul className="teaser-tags" aria-label="Built with">
+                    {x.tags.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </div>
+          <div className="more">
+            <Link className="btn primary" to="/projects">
+              See my projects
+            </Link>
+            <Link className="btn" to="/experience">
+              See my experience
+            </Link>
+          </div>
+        </div>
+      </section>
+    ),
+  };
 
   return (
     <Page name="home" title="Daniel Al Kabbout, AI Software Engineer">
@@ -174,141 +319,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="strip" aria-label={sec.strip.title}>
-          <div className="wrap strip-row">
-            <p>{sec.strip.title}</p>
-            <div className="strip-view">
-              <div className="strip-track">
-                {[0, 1].map((copy) => (
-                  <ul key={copy} aria-hidden={copy === 1 || undefined}>
-                    {text.items.flatMap((s) => [
-                      <li key={s}>{s}</li>,
-                      <li key={`${s}-dot`} className="dot" aria-hidden="true">
-                        ✦
-                      </li>,
-                    ])}
-                  </ul>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <section className="mani" id="mani" aria-label="About my work">
-          <div className="mani-in">
-            <div className="wrap">
-              <p className="mani-text" id="maniText">
-                {text.lead.split(' ').map((w, i) => (
-                  <Fragment key={i}>
-                    <span className={KEY_WORD.test(w) ? 'w key' : 'w'}>{w}</span>{' '}
-                  </Fragment>
-                ))}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <StoryPin title={sec.agents.title} steps={sec.agents.cards} />
-
-        <section>
-          <div className="wrap">
-            <div className="head">
-              <h2>{sec.proof.title}</h2>
-              {sec.proof.intro && <p>{sec.proof.intro}</p>}
-            </div>
-            <div className="proof" ref={proofRef}>
-              {site.highlights.map((h, i) => (
-                <div key={i}>
-                  <Counter n={h.n} />
-                  <span>{h.t}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="reel" id="reel" aria-label="Selected projects">
-          <div className="reel-in">
-            <div className="wrap reel-head">
-              <h2>{sec.reel.title}</h2>
-              {sec.reel.intro && <p>{sec.reel.intro}</p>}
-            </div>
-            <div className="reel-track" id="reelTrack">
-              {reel.map((x, i) => {
-                const [c1, c2] = REEL_COLORS[i % REEL_COLORS.length];
-                return (
-                  <Link
-                    key={x.id}
-                    className="rc"
-                    to={`/projects/${x.id}`}
-                    style={{ '--c1': `var(--${c1})`, '--c2': `var(--${c2})` } as React.CSSProperties}
-                  >
-                    <div className="rc-art">
-                      <Icon name={x.icon || x.demo} sw={1.6} />
-                    </div>
-                    <h3>{x.title}</h3>
-                    <p>{x.reel || x.summary}</p>
-                    <span className="rc-st">{x.tags.slice(0, 3).join(', ')}</span>
-                  </Link>
-                );
-              })}
-              <Link className="rc rc-end" to="/projects">
-                <h3>{reelEnd.title}</h3>
-                <p>{reelEnd.text}</p>
-                <span className="btn primary">{reelEnd.label}</span>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <div className="marq" aria-hidden="true">
-          {[
-            { words: sec.marqueeTop.words, speed: 0.35, cls: 'mrow' },
-            { words: sec.marqueeBottom.words, speed: -0.28, cls: 'mrow ol' },
-          ].map((row) => (
-            <div key={row.cls} className={row.cls} data-speed={row.speed}>
-              {[...row.words, ...row.words].flatMap((w, i) => [<span key={i}>{w}</span>, <b key={`b${i}`}>✦</b>])}
-            </div>
-          ))}
-        </div>
-
-        <section>
-          <div className="wrap">
-            <div className="head">
-              <h2>{sec.now.title}</h2>
-              {sec.now.intro && <p>{sec.now.intro}</p>}
-            </div>
-            <div className="teaser">
-              {sec.now.cards.map((x, i) => (
-                <article key={i} data-stage={x.stage || undefined}>
-                  {x.label && (
-                    <span className="who">
-                      {x.stage && <i aria-hidden="true" />}
-                      {x.label}
-                    </span>
-                  )}
-                  <h3>{x.title}</h3>
-                  {x.text && <p>{x.text}</p>}
-                  {x.tags.length > 0 && (
-                    <ul className="teaser-tags" aria-label="Built with">
-                      {x.tags.map((t) => (
-                        <li key={t}>{t}</li>
-                      ))}
-                    </ul>
-                  )}
-                </article>
-              ))}
-            </div>
-            <div className="more">
-              <Link className="btn primary" to="/projects">
-                See my projects
-              </Link>
-              <Link className="btn" to="/experience">
-                See my experience
-              </Link>
-            </div>
-          </div>
-        </section>
+        {layout.map((k) => (
+          <Fragment key={k}>{blocks[k]}</Fragment>
+        ))}
       </div>
     </Page>
   );

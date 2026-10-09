@@ -49,6 +49,13 @@ public class ValidationTests
         site.Pages.Home.Sections["now"].Cards[0].Stage = "next";
         site.Pages.Home.Sections["Bad Key!"] = new PageSectionDto();
         Assert.False(new SiteContentValidator().Validate(site).IsValid);
+        site.Pages.Home.Sections.Remove("Bad Key!");
+
+        site.Pages.Home.Order = ["now", "reel", "proof"];
+        site.Pages.Home.Hidden = ["marquee"];
+        Assert.True(new SiteContentValidator().Validate(site).IsValid);
+        site.Pages.Home.Order = ["now", "now"];
+        Assert.False(new SiteContentValidator().Validate(site).IsValid);
     }
 
     [Fact]

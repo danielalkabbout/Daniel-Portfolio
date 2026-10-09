@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fallbackContent } from '../api/content';
 import { clone } from '../features/admin/studio-state';
-import { pageSection, withDefaults } from './defaults';
+import { pageLayout, pageSection, withDefaults } from './defaults';
 
 describe('page sections', () => {
   it('uses the built-in text when nothing is set', () => {
@@ -49,5 +49,18 @@ describe('page sections', () => {
       expect.arrayContaining(['hero', 'agents', 'proof', 'reel', 'now', 'marqueeTop', 'marqueeBottom']),
     );
     expect(d.pages.services.sections.process.title).toBe("How we'd work together");
+  });
+});
+
+describe('page layout', () => {
+  it('keeps the built-in order until you change it', () => {
+    expect(pageLayout(fallbackContent, 'home')).toEqual(['strip', 'mani', 'agents', 'proof', 'reel', 'marquee', 'now']);
+  });
+
+  it('follows your order, adds blocks you did not list, and leaves out hidden ones', () => {
+    const site = clone(fallbackContent);
+    site.pages.home.order = ['now', 'reel', 'unknown', 'now'];
+    site.pages.home.hidden = ['marquee', 'mani'];
+    expect(pageLayout(site, 'home')).toEqual(['now', 'reel', 'strip', 'agents', 'proof']);
   });
 });

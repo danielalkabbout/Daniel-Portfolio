@@ -176,6 +176,12 @@ public partial class SiteContentValidator : AbstractValidator<SiteContentDto>
                 .Must(d => d.Count <= 24).WithMessage("Use at most 24 sections on a page.")
                 .Must(d => d.Keys.All(k => SectionKeyRegex().IsMatch(k))).WithMessage("Unknown section name.");
             RuleForEach(x => x.Sections).ChildRules(kv => kv.RuleFor(x => x.Value).NotNull().SetValidator(new PageSectionValidator()));
+            RuleFor(x => x.Order).NotNull()
+                .Must(l => l.Count <= 24 && l.Distinct().Count() == l.Count && l.All(k => SectionKeyRegex().IsMatch(k)))
+                .WithMessage("The section order lists an unknown or repeated section.");
+            RuleFor(x => x.Hidden).NotNull()
+                .Must(l => l.Count <= 24 && l.All(k => SectionKeyRegex().IsMatch(k)))
+                .WithMessage("Unknown hidden section.");
         }
     }
 

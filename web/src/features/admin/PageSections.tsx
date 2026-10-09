@@ -1,8 +1,10 @@
-import { DEFAULT_SECTIONS } from '../../content/defaults';
+import { useState } from 'react';
+import { DEFAULT_SECTIONS, PAGE_BLOCKS } from '../../content/defaults';
 import type { PageCard, PageKey, PageSection } from '../../types/content';
 import { FieldView, type Field } from './fields';
 import { Ic, useUi } from './ui';
 import { useStudio } from './studio-state';
+import { Switch } from './CvView';
 
 type CardField = keyof PageCard;
 
@@ -129,8 +131,9 @@ const noop = () => {};
 export function PageSections({ page }: { page: PageKey }) {
   const { d, update } = useStudio();
   const { toast } = useUi();
+  const [drag, setDrag] = useState<{ name: string; i: number } | null>(null);
   const meta = META[page];
-  if (!meta) return null;
+  if (!meta) return <PageLayout page={page} />;
   const sections = d.pages[page].sections;
 
   const edit = (name: string, fn: (s: PageSection) => void) =>
@@ -140,8 +143,15 @@ export function PageSections({ page }: { page: PageKey }) {
       fn(all[name]);
     });
 
+  const dropCard = (name: string, to: number) => {
+    if (drag && drag.name === name && drag.i !== to)
+      edit(name, (x) => void x.cards.splice(to, 0, ...x.cards.splice(drag.i, 1)));
+    setDrag(null);
+  };
+
   return (
     <>
+      <PageLayout page={page} />
       {Object.entries(meta).map(([name, m]) => {
         const s = sections[name] ?? DEFAULT_SECTIONS[page][name];
         if (!s) return null;
@@ -196,9 +206,32 @@ export function PageSections({ page }: { page: PageKey }) {
             {c && (
               <ol className="adm-pcards">
                 {s.cards.map((card, i) => (
-                  <li key={i} className="adm-pcard">
-                    <div className="adm-pcard-h">
-                      <b>{c.fixed?.[i] ?? `${c.name} ${i + 1}`}</b>
+                  <li
+                    key={i}
+                    className={drag?.name === name && drag.i === i ? 'adm-pcard drag' : 'adm-pcard'}
+                    onDragOver={(e) => drag?.name === name && e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      dropCard(name, i);
+                    }}
+                  >
+                    <div
+                      className="adm-pcard-h"
+                      draggable={!c.fixed}
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        setDrag({ name, i });
+                      }}
+                      onDragEnd={() => setDrag(null)}
+                    >
+                      <b>
+                        {!c.fixed && (
+                          <span className="adm-grip" aria-hidden="true" title="Drag to move">
+                            <Ic n="grip" />
+                          </span>
+                        )}
+                        {c.fixed?.[i] ?? `${c.name} ${i + 1}`}
+                      </b>
                       {!c.fixed && (
                         <span className="adm-pcard-tools">
                           <button
@@ -259,5 +292,110 @@ export function PageSections({ page }: { page: PageKey }) {
         );
       })}
     </>
+  );
+}
+
+/** The order of a page's blocks: drag them, or use the arrows, and switch any of them off. */
+function PageLayout({ page }: { page: PageKey }) {
+  const { d, update } = useStudio();
+  const [drag, setDrag] = useState<number | null>(null);
+  const blocks = PAGE_BLOCKS[page];
+  if (!blocks) return null;
+  const p = d.pages[page];
+  const known = blocks.map((b) => b.key);
+  const set = (p.order ?? []).filter((k, i, a) => known.includes(k) && a.indexOf(k) === i);
+  const order = [...set, ...known.filter((k) => !set.includes(k))];
+  const label = (k: string) => blocks.find((b) => b.key === k)?.label ?? k;
+
+  const move = (from: number, to: number) =>
+    update((x) => {
+      const o = [...order];
+      o.splice(to, 0, ...o.splice(from, 1));
+      x.pages[page].order = o;
+    });
+  const toggle = (k: string, show: boolean) =>
+    update((x) => {
+      const h = new Set(x.pages[page].hidden ?? []);
+      if (show) h.delete(k);
+      else h.add(k);
+      x.pages[page].hidden = [...h];
+    });
+
+  return (
+    <section className="adm-card adm-psec" aria-label="Page layout">
+      <div className="adm-psec-h">
+        <h3>Page layout</h3>
+        <button
+          type="button"
+          className="adm-link"
+          onClick={() =>
+            update((x) => {
+              x.pages[page].order = [];
+              x.pages[page].hidden = [];
+            })
+          }
+        >
+          <Ic n="reset" />
+          Reset
+        </button>
+      </div>
+      <p className="adm-muted adm-psec-help">
+        Drag the blocks to change their order on the page, and switch off any you don’t want. The top of the page always
+        comes first.
+      </p>
+      <ol className="adm-cvsecs">
+        {order.map((k, i) => {
+          const on = !(p.hidden ?? []).includes(k);
+          const pos = order.slice(0, i + 1).filter((x) => !(p.hidden ?? []).includes(x)).length;
+          return (
+            <li
+              key={k}
+              className={[drag === i ? 'drag' : '', on ? '' : 'off'].join(' ').trim()}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = 'move';
+                setDrag(i);
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (drag !== null && drag !== i) move(drag, i);
+                setDrag(null);
+              }}
+              onDragEnd={() => setDrag(null)}
+            >
+              <span className="adm-grip" aria-hidden="true">
+                <Ic n="grip" />
+              </span>
+              <span className="adm-cvsec-main">
+                <b>{label(k)}</b>
+                <small>{on ? `Position ${pos}` : 'Hidden'}</small>
+              </span>
+              <span className="adm-cvsec-act">
+                <button
+                  type="button"
+                  className="adm-ibtn"
+                  aria-label={`Move ${label(k)} up`}
+                  disabled={i === 0}
+                  onClick={() => move(i, i - 1)}
+                >
+                  <Ic n="up" />
+                </button>
+                <button
+                  type="button"
+                  className="adm-ibtn"
+                  aria-label={`Move ${label(k)} down`}
+                  disabled={i === order.length - 1}
+                  onClick={() => move(i, i + 1)}
+                >
+                  <Ic n="down" />
+                </button>
+                <Switch on={on} label={`Show ${label(k)}`} set={(v) => toggle(k, v)} />
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }

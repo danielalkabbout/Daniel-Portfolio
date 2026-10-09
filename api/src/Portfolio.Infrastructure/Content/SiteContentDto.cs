@@ -70,6 +70,10 @@ public sealed class PageTextDto
     public List<TextItemDto> Steps { get; set; } = [];
     /// <summary>Named sections of the page (home "now", "reel"...). Empty fields fall back to the site's built-in text.</summary>
     public Dictionary<string, PageSectionDto> Sections { get; set; } = [];
+    /// <summary>Order of the page's sections, by name. Sections not listed keep their built-in place after these.</summary>
+    public List<string> Order { get; set; } = [];
+    /// <summary>Sections switched off on the page, by name.</summary>
+    public List<string> Hidden { get; set; } = [];
 }
 
 /// <summary>One section of a page: a heading, a line under it, optional words and cards.</summary>

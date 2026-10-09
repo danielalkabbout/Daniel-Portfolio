@@ -9491,6 +9491,20 @@ body.menu-open .to-top {
   margin-bottom: 0.4rem;
   font-size: 0.9rem;
 }
+.adm-pcard-h[draggable='true'] {
+  cursor: grab;
+}
+.adm-pcard-h b {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.adm-pcard.drag {
+  opacity: 0.45;
+}
+.adm-cvsec-main b {
+  font-size: 0.93rem;
+}
 .adm-pcard-tools {
   display: flex;
   gap: 0.25rem;

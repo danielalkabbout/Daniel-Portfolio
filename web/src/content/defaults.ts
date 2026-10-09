@@ -159,8 +159,32 @@ const page = (p: Partial<PageText>): PageText => ({
   items: [],
   steps: [],
   sections: {},
+  order: [],
+  hidden: [],
   ...p,
 });
+
+/** The blocks of a page that can be moved and switched off, in their built-in order. */
+export const PAGE_BLOCKS: Partial<Record<PageKey, { key: string; label: string }[]>> = {
+  home: [
+    { key: 'strip', label: 'Moving strip' },
+    { key: 'mani', label: 'Manifesto' },
+    { key: 'agents', label: 'How my agents work' },
+    { key: 'proof', label: 'Highlights' },
+    { key: 'reel', label: 'Selected projects' },
+    { key: 'marquee', label: 'Big moving words' },
+    { key: 'now', label: "What I'm working on" },
+  ],
+};
+
+/** A page's movable blocks in the order you set, without the ones switched off. */
+export function pageLayout(site: SiteContent, key: PageKey): string[] {
+  const known = (PAGE_BLOCKS[key] ?? []).map((b) => b.key);
+  const p = site.pages[key];
+  const set = (p.order ?? []).filter((k, i, a) => known.includes(k) && a.indexOf(k) === i);
+  const all = [...set, ...known.filter((k) => !set.includes(k))];
+  return all.filter((k) => !(p.hidden ?? []).includes(k));
+}
 
 export const DEFAULT_PAGES: Pages = {
   home: page({
@@ -257,6 +281,8 @@ export function pageText(site: SiteContent, key: PageKey): PageText {
       p.steps.filter((x) => x.title.trim()),
       d.steps,
     ),
+    order: p.order ?? [],
+    hidden: p.hidden ?? [],
     sections: Object.fromEntries(
       Object.entries(DEFAULT_SECTIONS[key]).map(([k, ds]) => [
         k,

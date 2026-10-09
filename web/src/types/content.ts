@@ -128,6 +128,8 @@ export const pageTextSchema = z.object({
   items: z.array(z.string()).default([]),
   steps: z.array(textItem).default([]),
   sections: z.record(z.string(), pageSectionSchema).default({}),
+  order: z.array(z.string()).default([]),
+  hidden: z.array(z.string()).default([]),
 });
 
 export const pagesSchema = z.object({
