@@ -95,6 +95,19 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task Email_status_is_reported_and_tests_need_a_key()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var admin = await AdminClientAsync();
+        var status = await admin.GetFromJsonAsync<JsonElement>("/api/admin/notifications", Json);
+        Assert.False(status.GetProperty("email").GetBoolean());
+
+        var test = await admin.PostAsync("/api/admin/notifications/test", null);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, test.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/admin/notifications")).StatusCode);
+    }
+
+    [SkippableFact]
     public async Task Invalid_content_is_rejected()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");
