@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
+import me from '../../assets/daniel-small.jpg';
 import { api, ApiError } from '../../api/client';
 import { PREVIEW_KEY } from '../../api/content';
 import { store } from '../../lib/env';
@@ -253,37 +254,67 @@ export function Studio({ initial: raw }: { initial: SiteContent }) {
     <StudioCtx.Provider value={studio}>
       <div className="adm">
         <aside className="adm-side">
-          <div className="adm-brand">
-            <span className="adm-logo">
-              <Ic n="lock" />
+          <div className="adm-me">
+            <span className="adm-me-pic">
+              <img src={me} alt="" width="44" height="44" />
+              <i aria-hidden="true" />
             </span>
             <div>
-              <b>Content studio</b>
-              <small>Only you can see this</small>
+              <b>Daniel Al Kabbout</b>
+              <small>
+                <Ic n="lock" />
+                Content studio
+              </small>
             </div>
           </div>
-          <nav className="adm-tabs">
+          <div className={dirty ? 'adm-state draft' : 'adm-state'} role="status">
+            <span aria-hidden="true" />
+            <div>
+              <b>
+                {dirty ? `${ch.length} unpublished ${ch.length === 1 ? 'change' : 'changes'}` : 'Everything is live'}
+              </b>
+              <small>
+                {dirty
+                  ? 'Publish when you are ready'
+                  : base.updatedAt
+                    ? `Published ${new Date(base.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                    : 'Your site matches the studio'}
+              </small>
+            </div>
+          </div>
+          <nav className="adm-tabs" aria-label="Studio sections">
             {TABS.map(([k, label, icon, group], i) => {
               const changed = tabMap[k]?.some((x) => (ch as readonly string[]).includes(x));
               const n = counts[k];
               return (
                 <Fragment key={k}>
                   {(i === 0 || TABS[i - 1][3] !== group) && <span className="adm-tabgroup">{group}</span>}
-                  <button type="button" className={k === tab ? 'on' : undefined} onClick={() => show(k)}>
-                    <Ic n={icon} />
-                    <span>{label}</span>
+                  <button
+                    type="button"
+                    className={k === tab ? 'on' : undefined}
+                    aria-current={k === tab ? 'page' : undefined}
+                    onClick={() => show(k)}
+                  >
+                    <span className="adm-tab-ic">
+                      <Ic n={icon} />
+                    </span>
+                    <span className="adm-tab-label">{label}</span>
                     {changed && <i className="adm-chg" title="Unpublished changes" />}
-                    {n != null && (k !== 'requests' || n > 0) && <em>{n}</em>}
+                    {n != null && (k !== 'requests' || n > 0) && (
+                      <em className={k === 'requests' ? 'hot' : undefined}>{n}</em>
+                    )}
                   </button>
                 </Fragment>
               );
             })}
           </nav>
           <div className="adm-side-foot">
-            <Link to="/" className="adm-link">
+            <Link to="/" className="adm-foot-btn">
+              <Ic n="eye" />
               View live site
             </Link>
-            <button type="button" className="adm-link" onClick={logout}>
+            <button type="button" className="adm-foot-btn" onClick={logout}>
+              <Ic n="logout" />
               Sign out
             </button>
           </div>

@@ -9874,3 +9874,232 @@ main {
     background: linear-gradient(90deg, var(--surface) 85%, transparent);
   }
 }
+
+/* ---------- studio: sidebar ---------- */
+.adm-side {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sky) 7%, var(--bg2)) 0%, var(--bg2) 38%);
+  padding: 1.25rem 0.9rem;
+  gap: 1rem;
+}
+.adm-me {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.2rem 0.35rem;
+}
+.adm-me-pic {
+  position: relative;
+  flex: none;
+  display: block;
+}
+.adm-me-pic img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 2px var(--bg2),
+    0 0 0 4px color-mix(in srgb, var(--sky) 55%, transparent);
+}
+.adm-me-pic i {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--mint);
+  border: 2px solid var(--bg2);
+}
+.adm-me b {
+  display: block;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+.adm-me small {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.adm-me small svg {
+  width: 12px;
+  height: 12px;
+}
+.adm-state {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--mint) 35%, var(--line));
+  background: color-mix(in srgb, var(--mint) 8%, transparent);
+}
+.adm-state > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--mint);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 20%, transparent);
+}
+.adm-state.draft {
+  border-color: color-mix(in srgb, var(--sun) 40%, var(--line));
+  background: color-mix(in srgb, var(--sun) 9%, transparent);
+}
+.adm-state.draft > span {
+  background: var(--sun);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sun) 22%, transparent);
+}
+.adm-state b {
+  display: block;
+  font-size: 0.86rem;
+}
+.adm-state small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.adm-tabgroup {
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  padding: 0.9rem 0.6rem 0.35rem;
+}
+.adm-side .adm-tabs button {
+  gap: 0.65rem;
+  padding: 0.38rem 0.5rem;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: none;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.adm-side .adm-tabs button span.adm-tab-ic,
+.adm-tab-ic {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--surface);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.adm-side .adm-tabs button .adm-tab-ic svg {
+  width: 16px;
+  height: 16px;
+}
+.adm-side .adm-tabs button span.adm-tab-label {
+  flex: 1;
+}
+.adm-side .adm-tabs button:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+}
+.adm-side .adm-tabs button.on {
+  background: color-mix(in srgb, var(--sky) 13%, transparent);
+  color: var(--ink);
+  box-shadow: none;
+}
+.adm-side .adm-tabs button.on .adm-tab-ic {
+  background: linear-gradient(135deg, var(--sky), var(--mint));
+  color: var(--on-sky);
+}
+.adm-side .adm-tabs button.on::before {
+  content: '';
+  position: absolute;
+  left: -0.9rem;
+  top: 24%;
+  bottom: 24%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--sky);
+}
+.adm-tabs button em.hot {
+  background: var(--sun);
+  color: #1d1400;
+  font-weight: 700;
+}
+.adm-side .adm-side-foot {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: auto;
+  padding: 0.75rem 0 0;
+  border-top: 1px solid var(--line);
+}
+.adm-foot-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.6rem;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font:
+    600 0.86rem 'Instrument Sans',
+    sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+.adm-foot-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.adm-foot-btn:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+}
+@media (max-width: 980px) {
+  .adm-side {
+    padding: 0.5rem 0.75rem;
+    gap: 0.6rem;
+    background: var(--bg2);
+  }
+  .adm-me {
+    padding: 0;
+  }
+  .adm-me > div,
+  .adm-state,
+  .adm-tabgroup {
+    display: none;
+  }
+  .adm-me-pic img {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+  .adm-me-pic i {
+    width: 10px;
+    height: 10px;
+  }
+  .adm-side .adm-tabs button {
+    padding: 0.32rem 0.65rem 0.32rem 0.35rem;
+  }
+  .adm-tab-ic {
+    width: 26px;
+    height: 26px;
+  }
+  .adm-side .adm-tabs button.on::before {
+    display: none;
+  }
+  .adm-side .adm-side-foot {
+    display: flex;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0 0 0 0.5rem;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+  .adm-foot-btn {
+    white-space: nowrap;
+  }
+}
