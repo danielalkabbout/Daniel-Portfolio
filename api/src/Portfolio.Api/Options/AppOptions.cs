@@ -57,6 +57,8 @@ public sealed class EmailOptions
     public string ResendApiKey { get; set; } = "";
     public string From { get; set; } = "Portfolio <onboarding@resend.dev>";
     public string To { get; set; } = "";
+    /// <summary>Linked from every email, to open your requests.</summary>
+    public string StudioUrl { get; set; } = "https://danielalkabbout.pages.dev/admin";
 }
 
 public sealed class PublishOptions

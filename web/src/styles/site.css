@@ -10215,3 +10215,90 @@ main {
     white-space: nowrap;
   }
 }
+
+/* ---------- studio: email alerts ---------- */
+.adm-mail {
+  display: block;
+  margin-bottom: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.adm-mail.on,
+.adm-mail summary {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+}
+.adm-mail summary {
+  cursor: pointer;
+  list-style: none;
+}
+.adm-mail summary::-webkit-details-marker {
+  display: none;
+}
+.adm-mail > div,
+.adm-mail summary > div {
+  flex: 1;
+  min-width: 0;
+}
+.adm-mail b {
+  display: block;
+  font-size: 0.93rem;
+}
+.adm-mail small {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+.adm-mail-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: color-mix(in srgb, var(--sun) 16%, transparent);
+  color: var(--sun);
+}
+.adm-mail.on {
+  border-color: color-mix(in srgb, var(--mint) 40%, var(--line));
+}
+.adm-mail.on .adm-mail-ic {
+  background: color-mix(in srgb, var(--mint) 16%, transparent);
+  color: var(--mint);
+}
+.adm-mail-ic svg {
+  width: 18px;
+  height: 18px;
+}
+.adm-mail ol {
+  margin: 0;
+  padding: 0 1.2rem 1rem 3.6rem;
+  display: grid;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.adm-mail ol b {
+  display: inline;
+  color: var(--ink);
+}
+.adm-mail code {
+  font-size: 0.85em;
+  padding: 0.05rem 0.35rem;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+}
+@media (max-width: 620px) {
+  .adm-mail.on {
+    flex-wrap: wrap;
+  }
+  .adm-mail.on .adm-btn {
+    flex-basis: 100%;
+  }
+  .adm-mail ol {
+    padding-left: 2.2rem;
+  }
+}

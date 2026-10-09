@@ -22,8 +22,28 @@ public class AdminController(
     AuditWriter audit,
     IValidator<SiteContentDto> validator,
     IOutputCacheStore outputCache,
-    IMemoryCache memory) : ControllerBase
+    IMemoryCache memory,
+    EmailNotifier email) : ControllerBase
 {
+    /// <summary>Whether new requests are emailed to you, and where.</summary>
+    [HttpGet("notifications")]
+    public IActionResult GetNotifications() => Ok(new { email = email.IsConfigured, to = email.MaskedTo });
+
+    /// <summary>Sends a test email so you can check the setup from the studio.</summary>
+    [HttpPost("notifications/test")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("strict")]
+    public async Task<IActionResult> TestNotification(CancellationToken ct)
+    {
+        if (!email.IsConfigured)
+            return Problem(statusCode: 503, title: "Email is not set up",
+                detail: "Add Email__ResendApiKey and Email__To to the API's environment, then try again.");
+        if (!await email.SendTestAsync(ct))
+            return Problem(statusCode: 502, title: "The test email could not be sent",
+                detail: "Resend refused it. Check the API key, and that the address is the one your Resend account uses.");
+        await audit.WriteAsync("test", "email", ct: ct);
+        return Ok(new { sent = true });
+    }
+
     [HttpGet("content")]
     public async Task<IActionResult> GetContent(CancellationToken ct) =>
         await content.GetAsync(ct) is { } site ? Ok(site) : Ok(new SiteContentDto());

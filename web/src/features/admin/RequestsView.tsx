@@ -27,7 +27,71 @@ export function useRequests() {
   });
 }
 
-/** Requests sent from the Services page form. */
+/** Whether new requests are also emailed to you, with a test button and setup steps when they aren't. */
+function EmailStatus() {
+  const { toast } = useUi();
+  const [sending, setSending] = useState(false);
+  const { data } = useQuery({
+    queryKey: ['admin', 'notifications'],
+    queryFn: () => api<{ email: boolean; to: string }>('/api/admin/notifications'),
+    staleTime: 5 * 60_000,
+  });
+  if (!data) return null;
+
+  const test = async () => {
+    setSending(true);
+    try {
+      await api('/api/admin/notifications/test', { method: 'POST' });
+      toast(`Test email sent to ${data.to}`);
+    } catch (e) {
+      toast((e as Error).message, 'err');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return data.email ? (
+    <div className="adm-mail on" role="status">
+      <span className="adm-mail-ic">
+        <Ic n="mail" />
+      </span>
+      <div>
+        <b>Email alerts are on</b>
+        <small>Every new request is saved here and emailed to {data.to}. Reply to the email to answer directly.</small>
+      </div>
+      <button type="button" className="adm-btn ghost" disabled={sending} onClick={() => void test()}>
+        {sending ? 'Sending…' : 'Send test email'}
+      </button>
+    </div>
+  ) : (
+    <details className="adm-mail">
+      <summary>
+        <span className="adm-mail-ic">
+          <Ic n="mail" />
+        </span>
+        <div>
+          <b>Email alerts are off</b>
+          <small>Requests are saved here. Turn on email to also get each one in your inbox. Click for the steps.</small>
+        </div>
+      </summary>
+      <ol>
+        <li>
+          Create a free account at <b>resend.com</b> with the email address you want the alerts sent to.
+        </li>
+        <li>
+          In Resend, open <b>API Keys</b> and create a key with <b>Sending access</b>. Copy it.
+        </li>
+        <li>
+          On <b>Render</b>, open your API service, then <b>Environment</b>, and add <code>Email__ResendApiKey</code>{' '}
+          (the key) and <code>Email__To</code> (your email). Save; the API restarts by itself.
+        </li>
+        <li>Come back here and press Send test email.</li>
+      </ol>
+    </details>
+  );
+}
+
+/** Requests sent from the site: the Services form and "Request the code" on projects. */
 export function RequestsView() {
   const { ask, toast } = useUi();
   const qc = useQueryClient();
@@ -71,13 +135,14 @@ export function RequestsView() {
     <>
       <Head
         title="Requests"
-        desc="Everything sent through the request form on the Services page, newest first."
+        desc="Everything visitors send you: the Services form and code requests from projects, newest first."
         actions={
           <button type="button" className="adm-btn ghost" onClick={() => void refetch()}>
             Refresh
           </button>
         }
       />
+      <EmailStatus />
       <div className="adm-seg" role="tablist" aria-label="Filter requests">
         {(['All', ...STATUSES] as const).map((s) => (
           <button key={s} type="button" role="tab" aria-selected={filter === s} onClick={() => setFilter(s)}>
