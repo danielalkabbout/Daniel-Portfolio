@@ -135,7 +135,7 @@ export function EchoChat() {
     const typingId = add({ who: 'typing', body: '', time: '' });
 
     let plain: string | undefined;
-    if (res.unsure) {
+    if (res.unsure || res.weak) {
       const ai = await askAi(q);
       if (my !== run.current) return;
       if (ai) {
