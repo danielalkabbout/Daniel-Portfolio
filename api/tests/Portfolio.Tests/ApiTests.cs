@@ -160,6 +160,18 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task Echo_ai_test_says_when_it_is_off()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var admin = await AdminClientAsync();
+        admin.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await admin.PostAsync("/api/admin/echo/test", null)).StatusCode);
+        var anon = factory.CreateClient();
+        anon.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await anon.PostAsync("/api/admin/echo/test", null)).StatusCode);
+    }
+
+    [SkippableFact]
     public async Task Invalid_content_is_rejected()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");

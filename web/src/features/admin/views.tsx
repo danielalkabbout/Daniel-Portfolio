@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ICON_CHOICES, Icon, SERVICE_VISUALS, VISUAL_CHOICES, visualKey } from '../../lib/icons';
 import { copyText } from '../../lib/env';
+import { api } from '../../api/client';
 import {
   siteContentSchema,
   type Experience,
@@ -294,6 +295,7 @@ export function OverviewView({ newRequests }: { newRequests: number | null }) {
               : 'Not published from the studio yet.'}
           </p>
           <Checks />
+          <EchoTest />
           <h3 className="adm-mt">How it works</h3>
           <ol className="adm-how">
             <li>Edit anything in the tabs on the left.</li>
@@ -306,6 +308,40 @@ export function OverviewView({ newRequests }: { newRequests: number | null }) {
           </ol>
         </div>
       </div>
+    </>
+  );
+}
+
+/** Asks Gemini one question through the API and shows the answer, or exactly why it failed. */
+function EchoTest() {
+  const [state, setState] = useState<{ busy: boolean; ok?: boolean; text?: string }>({ busy: false });
+  const run = async () => {
+    setState({ busy: true });
+    try {
+      const r = await api<{ answer: string; model: string }>('/api/admin/echo/test', {
+        method: 'POST',
+        timeoutMs: 60000,
+      });
+      setState({ busy: false, ok: true, text: `${r.answer} (${r.model})` });
+    } catch (e) {
+      setState({ busy: false, ok: false, text: (e as Error).message });
+    }
+  };
+  return (
+    <>
+      <h3 className="adm-mt">Echo's AI</h3>
+      <div className="adm-echotest">
+        <p className="adm-muted">Ask Gemini a test question through your API, to check the key works.</p>
+        <button type="button" className="adm-btn ghost" disabled={state.busy} onClick={() => void run()}>
+          {state.busy ? 'Asking Gemini…' : "Test Echo's AI"}
+        </button>
+      </div>
+      {state.text && (
+        <p className={state.ok ? 'adm-ok' : 'adm-warn'} role="status">
+          <Ic n={state.ok ? 'check' : 'warn'} />
+          <span>{state.ok ? `Working. Gemini said: “${state.text}”` : state.text}</span>
+        </p>
+      )}
     </>
   );
 }
