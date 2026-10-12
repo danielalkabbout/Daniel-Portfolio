@@ -20,6 +20,8 @@ export interface EchoAnswer {
   id?: string;
   /** True when no rule matched, so the AI may do better. */
   unsure?: boolean;
+  /** A rule matched only loosely on an open question: the AI answers first, this answer is the fallback. */
+  weak?: boolean;
 }
 
 export const GREETING = "Hi, I'm Echo, Daniel's assistant. Ask me anything about his work, or tap a suggestion below.";
@@ -271,7 +273,16 @@ export class EchoEngine {
         best = x;
       }
     }
-    if (best && bs >= 1.5) return { a: best.a, f: best.f, id: best.id };
+    if (best && bs >= 1.5) {
+      // "What would he build for a hospital?" only brushes the "hire" rule: let the AI answer the
+      // actual question, and keep the rule's answer in case the AI isn't available.
+      const words = t.trim().split(' ').length;
+      const open = /^ ?(what|how|why|could|would|should|which|if|imagine|suppose|explain|describe|compare|give)\b/.test(
+        t,
+      );
+      const weak = words >= 6 && bs < (open ? 6 : 4);
+      return { a: best.a, f: best.f, id: best.id, ...(weak ? { weak } : {}) };
+    }
     return {
       a:
         "I'm not sure about that one. I only answer from Daniel's CV. You could ask about his experience, projects, skills or services, or reach him directly." +

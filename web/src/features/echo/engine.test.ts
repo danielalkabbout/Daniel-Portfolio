@@ -52,4 +52,13 @@ describe('Echo', () => {
   it('says when it is unsure, so the AI can take over', () => {
     expect(engine().answer('what is the airspeed of a swallow').unsure).toBe(true);
   });
+
+  it('lets the AI answer open questions that only brush a rule', () => {
+    const open = engine().answer('What would Daniel build for a hospital?');
+    expect(open.weak).toBe(true);
+    expect(open.a).toContain('Request a service'); // still there if the AI is unavailable
+    expect(engine().answer('Can I hire him?').weak).toBeUndefined();
+    expect(engine().answer('Where did he study?').weak).toBeUndefined();
+    expect(engine().answer('What does he build?').weak).toBeUndefined();
+  });
 });
