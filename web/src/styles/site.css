@@ -10646,3 +10646,16 @@ main {
     gap: 0.3rem;
   }
 }
+
+/* ---------- studio: Echo AI test ---------- */
+.adm-echotest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.adm-echotest p {
+  margin: 0;
+  flex: 1 1 14rem;
+}

@@ -44,7 +44,9 @@ public class EchoAssistant(
         var body = new GeminiRequest(
             new GeminiContent(null, [new GeminiPart(SystemPrompt(facts))]),
             contents,
-            new GeminiConfig(0.3, 350));
+            // Newer Flash models think before answering, and that thinking counts against this limit, so it
+            // must leave room for both. The prompt keeps the visible answer to 1 to 3 sentences.
+            new GeminiConfig(0.3, 2048));
 
         var o = options.Value;
         using var message = new HttpRequestMessage(HttpMethod.Post, $"v1beta/models/{o.Model}:generateContent")
@@ -58,18 +60,47 @@ public class EchoAssistant(
             using var response = await http.SendAsync(message, ct);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("Gemini returned {Status}", (int)response.StatusCode);
+                var error = await ReadErrorAsync(response, ct);
+                LastProblem = $"Gemini answered {(int)response.StatusCode}: {error}";
+                logger.LogWarning("Gemini returned {Status}: {Error}", (int)response.StatusCode, error);
                 return null;
             }
             var result = await response.Content.ReadFromJsonAsync<GeminiResponse>(ct);
-            var text = string.Concat(result?.Candidates?.FirstOrDefault()?.Content?.Parts?.Select(p => p.Text) ?? []);
-            return string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+            var first = result?.Candidates?.FirstOrDefault();
+            var text = string.Concat(first?.Content?.Parts?.Select(p => p.Text ?? "") ?? []);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                LastProblem = $"Gemini sent no text (finish reason: {first?.FinishReason ?? "none"}).";
+                logger.LogWarning("Gemini sent no text, finish reason {Reason}", first?.FinishReason);
+                return null;
+            }
+            LastProblem = null;
+            return text.Trim();
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
         {
+            LastProblem = ex is TaskCanceledException ? "Gemini took too long to answer." : $"Could not reach Gemini: {ex.Message}";
             logger.LogWarning(ex, "Gemini call failed");
             return null;
         }
+    }
+
+    /// <summary>Why the last AI answer failed, for the studio's test button. Never contains the key.</summary>
+    public string? LastProblem { get; private set; }
+
+    /// <summary>The model name in use, for the studio.</summary>
+    public string Model => options.Value.Model;
+
+    private static async Task<string> ReadErrorAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        try
+        {
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
+            if (doc.RootElement.TryGetProperty("error", out var e) && e.TryGetProperty("message", out var m))
+                return m.GetString() ?? response.ReasonPhrase ?? "";
+        }
+        catch (JsonException) { }
+        return response.ReasonPhrase ?? "";
     }
 
     private static string SystemPrompt(string facts) =>
@@ -116,7 +147,7 @@ public class EchoAssistant(
         [property: JsonPropertyName("role"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Role,
         [property: JsonPropertyName("parts")] List<GeminiPart> Parts);
 
-    private sealed record GeminiPart([property: JsonPropertyName("text")] string Text);
+    private sealed record GeminiPart([property: JsonPropertyName("text")] string? Text);
 
     private sealed record GeminiConfig(
         [property: JsonPropertyName("temperature")] double Temperature,
@@ -124,5 +155,7 @@ public class EchoAssistant(
 
     private sealed record GeminiResponse([property: JsonPropertyName("candidates")] List<GeminiCandidate>? Candidates);
 
-    private sealed record GeminiCandidate([property: JsonPropertyName("content")] GeminiContent? Content);
+    private sealed record GeminiCandidate(
+        [property: JsonPropertyName("content")] GeminiContent? Content,
+        [property: JsonPropertyName("finishReason")] string? FinishReason);
 }
