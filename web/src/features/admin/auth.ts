@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { api, ApiError } from '../../api/client';
 import { store } from '../../lib/env';
+import { setOwnDevice } from '../../lib/track';
 import { loginId, prove, register, type Challenge } from './srp';
 
 /**
@@ -80,6 +81,8 @@ export async function login(email: string, password: string) {
   });
   if (res.m2 !== p.m2) throw new ApiError(0, 'The server could not prove who it is. Sign-in stopped.');
   save({ email: res.email, expiresAt: res.expiresAt });
+  // Your own visits on this device stop counting in Visitors, even after the session ends.
+  setOwnDevice(true);
 }
 
 /** Forgets the session here at once, and asks the API to delete the cookie. */
