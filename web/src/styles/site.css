@@ -10659,3 +10659,27 @@ main {
   margin: 0;
   flex: 1 1 14rem;
 }
+
+/* ---------- studio: own device switch ---------- */
+.adm-owndev {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.adm-owndev.on {
+  border-color: color-mix(in srgb, var(--mint) 35%, var(--line));
+}
+.adm-owndev b {
+  display: block;
+  font-size: 0.9rem;
+}
+.adm-owndev small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}

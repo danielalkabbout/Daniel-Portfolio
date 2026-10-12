@@ -11,9 +11,16 @@ import { store } from './env';
  * Skipped when the browser asks not to be tracked, in studio previews, and (server side) for the
  * signed-in studio owner.
  */
+/** Set on Daniel's own devices (on studio sign-in, or with the switch in the Visitors tab), so they're never counted. */
+export const OWN_DEVICE_KEY = 'dk-own-device';
+export const isOwnDevice = () => store('local').get(OWN_DEVICE_KEY) === '1';
+export const setOwnDevice = (on: boolean) =>
+  on ? store('local').set(OWN_DEVICE_KEY, '1') : store('local').remove(OWN_DEVICE_KEY);
+
 const optedOut = () =>
-  typeof navigator !== 'undefined' &&
-  (navigator.doNotTrack === '1' || (navigator as { globalPrivacyControl?: boolean }).globalPrivacyControl === true);
+  isOwnDevice() ||
+  (typeof navigator !== 'undefined' &&
+    (navigator.doNotTrack === '1' || (navigator as { globalPrivacyControl?: boolean }).globalPrivacyControl === true));
 
 let firstView = true;
 

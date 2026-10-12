@@ -4,6 +4,8 @@ import { api } from '../../api/client';
 import { useStudio } from './studio-state';
 import { Ic, useUi } from './ui';
 import { Head } from './views';
+import { Switch } from './CvView';
+import { isOwnDevice, setOwnDevice } from '../../lib/track';
 
 interface Count {
   name: string;
@@ -357,6 +359,30 @@ function PersonalLinks({ pageName }: { pageName: (p: string) => string }) {
   );
 }
 
+/** Keeps Daniel's own phone and computer out of the counts. */
+function OwnDevice() {
+  const [on, setOn] = useState(isOwnDevice);
+  return (
+    <div className={on ? 'adm-owndev on' : 'adm-owndev'}>
+      <div>
+        <b>{on ? 'Your visits on this device are not counted' : 'Your visits on this device are counted'}</b>
+        <small>
+          Turned on automatically when you sign in to the studio. Sign in once on your phone too, or open the studio
+          there and switch this on.
+        </small>
+      </div>
+      <Switch
+        on={on}
+        label="Don't count my visits on this device"
+        set={(v) => {
+          setOwnDevice(v);
+          setOn(v);
+        }}
+      />
+    </div>
+  );
+}
+
 /** Anonymous visitor counts: how many people came, from where, and what they looked at. */
 export function VisitorsView() {
   const { d } = useStudio();
@@ -380,6 +406,7 @@ export function VisitorsView() {
           </button>
         }
       />
+      <OwnDevice />
       <PersonalLinks pageName={(p) => PAGE_NAMES[p] ?? (p.startsWith('/projects/') ? projectTitle(p.slice(10)) : p)} />
       <div className="adm-seg" role="tablist" aria-label="Time range">
         {RANGES.map((r) => (
