@@ -10647,6 +10647,115 @@ main {
   }
 }
 
+/* ---------- studio: visits without a personal link ---------- */
+.adm-links-h {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.adm-other {
+  margin-top: 1.2rem;
+}
+.adm-other-n {
+  flex: none;
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.adm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1rem 0 0.2rem;
+}
+.adm-chips button {
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--ink);
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+.adm-chips button b {
+  margin-left: 0.25rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.adm-chips button[aria-pressed='true'] {
+  background: var(--sky);
+  border-color: var(--sky);
+  color: var(--on-sky);
+}
+.adm-chips button[aria-pressed='true'] b {
+  color: inherit;
+}
+.adm-chips button:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+}
+.adm-journeys {
+  border-top: 0;
+  padding: 0;
+}
+.adm-journeys > li {
+  grid-template-columns: 14rem 1fr;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg2);
+}
+.adm-link-hist li {
+  grid-template-columns: 14rem 1fr;
+}
+.adm-src {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.05rem 0.45rem;
+  border-radius: 6px;
+  color: var(--sky);
+  background: color-mix(in srgb, var(--sky) 14%, transparent);
+}
+.adm-src.direct {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+}
+.adm-src.messaging,
+.adm-src.email {
+  color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 14%, transparent);
+}
+.adm-src.search,
+.adm-src.ai {
+  color: var(--sun);
+  background: color-mix(in srgb, var(--sun) 14%, transparent);
+}
+.adm-other-more {
+  margin-top: 0.8rem;
+}
+.adm-vsplit {
+  margin: -0.4rem 0 1.2rem;
+  font-size: 0.88rem;
+}
+.adm-vsplit b {
+  color: var(--ink);
+}
+.adm-vlist-sub {
+  color: var(--muted);
+  font-size: 0.76rem;
+  margin-left: 0.3rem;
+}
+@media (max-width: 760px) {
+  .adm-journeys > li,
+  .adm-link-hist li {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
 /* ---------- studio: Echo AI test ---------- */
 .adm-echotest {
   display: flex;

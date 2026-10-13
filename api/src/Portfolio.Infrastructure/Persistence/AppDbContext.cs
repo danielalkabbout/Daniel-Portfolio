@@ -127,6 +127,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Device).HasMaxLength(10);
             e.Property(x => x.Visitor).HasMaxLength(16);
             e.Property(x => x.Ref).HasMaxLength(12).HasDefaultValue("");
+            e.Property(x => x.Session).HasMaxLength(24).HasDefaultValue("");
             e.HasIndex(x => x.At);
             e.HasIndex(x => x.Ref);
         });

@@ -18,6 +18,10 @@ interface VisitStats {
   views: number;
   visitors: number;
   cvDownloads: number;
+  /** Visits (browser tabs), and how many of them came through a personal link. */
+  visits?: number;
+  linkVisits?: number;
+  channels?: Count[];
   perDay: { date: string; views: number; visitors: number }[];
   pages: Count[];
   projects: Count[];
@@ -45,6 +49,45 @@ const fmtDay = (d: string, long = false) =>
     ...(long ? { weekday: 'short' } : {}),
     timeZone: 'UTC',
   });
+
+/** The kind of place a source is, matching the API's grouping. */
+const CHANNEL_OF: Record<string, string> = {
+  LinkedIn: 'Social',
+  Instagram: 'Social',
+  Facebook: 'Social',
+  Threads: 'Social',
+  X: 'Social',
+  TikTok: 'Social',
+  Snapchat: 'Social',
+  YouTube: 'Social',
+  Reddit: 'Social',
+  Pinterest: 'Social',
+  WhatsApp: 'Messaging',
+  Messenger: 'Messaging',
+  Telegram: 'Messaging',
+  Slack: 'Messaging',
+  Teams: 'Messaging',
+  Discord: 'Messaging',
+  WeChat: 'Messaging',
+  LINE: 'Messaging',
+  Gmail: 'Email',
+  Outlook: 'Email',
+  'Yahoo Mail': 'Email',
+  Email: 'Email',
+  Google: 'Search',
+  Bing: 'Search',
+  DuckDuckGo: 'Search',
+  Yahoo: 'Search',
+  Yandex: 'Search',
+  Ecosia: 'Search',
+  'Brave Search': 'Search',
+  ChatGPT: 'AI',
+  Claude: 'AI',
+  Gemini: 'AI',
+  Perplexity: 'AI',
+  Copilot: 'AI',
+};
+const channelOf = (name: string) => CHANNEL_OF[name] ?? 'Website';
 
 const PAGE_NAMES: Record<string, string> = {
   '/': 'Home',
@@ -139,12 +182,20 @@ function TopList({
   );
 }
 
+interface Step {
+  at: string;
+  kind: 'view' | 'cv';
+  path: string;
+}
+
 interface LinkSession {
   at: string;
   lastAt: string;
   device: string;
   country: string;
   source: string;
+  channel?: string;
+  steps?: Step[];
   pages: string[];
   cv: boolean;
 }
@@ -178,6 +229,145 @@ const when = (iso: string) =>
     hour: '2-digit',
     minute: '2-digit',
   });
+
+const duration = (from: string, to: string) => {
+  const s = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 1000);
+  if (s < 10) return '';
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
+  return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+};
+
+const CHANNEL_HINT: Record<string, string> = {
+  Direct: 'typed the address, a bookmark, or an app that hides where the link was',
+  Social: 'a social network',
+  Messaging: 'a chat app',
+  Email: 'an email',
+  Search: 'a search engine',
+  AI: 'an AI assistant',
+  Website: 'another website',
+};
+
+/** Where a visit came from, as a small tag: the source, coloured by its kind. */
+function SourceTag({ source, channel }: { source: string; channel?: string }) {
+  const c = channel || (source === 'Direct' ? 'Direct' : '');
+  return (
+    <span className={`adm-src ${c.toLowerCase()}`} title={c ? `${c}: ${CHANNEL_HINT[c] ?? ''}` : undefined}>
+      {source === 'Direct' ? 'Direct' : source}
+    </span>
+  );
+}
+
+/** One visit, in order: each page they opened and when, and whether they downloaded the CV. */
+function Journey({ v, pageName }: { v: LinkSession; pageName: (p: string) => string }) {
+  const steps: Step[] = v.steps ?? [
+    ...v.pages.map((path) => ({ at: v.at, kind: 'view' as const, path })),
+    ...(v.cv ? [{ at: v.lastAt, kind: 'cv' as const, path: '/cv' }] : []),
+  ];
+  const long = duration(v.at, v.lastAt);
+  return (
+    <li>
+      <span className="adm-link-when">
+        {when(v.at)}
+        <small>
+          <SourceTag source={v.source} channel={v.channel} />
+          {[v.device, v.country && `${flag(v.country)} ${countryName(v.country)}`, long && `stayed ${long}`]
+            .filter(Boolean)
+            .map((x) => ` · ${x}`)}
+        </small>
+      </span>
+      <span className="adm-link-path">
+        {steps.map((st, k) => (
+          <span
+            key={k}
+            className={st.kind === 'cv' ? 'cv' : undefined}
+            title={v.steps ? new Date(st.at).toLocaleTimeString('en-GB') : undefined}
+          >
+            {st.kind === 'cv' ? 'Downloaded CV' : pageName(st.path)}
+          </span>
+        ))}
+      </span>
+    </li>
+  );
+}
+
+interface SessionList {
+  total: number;
+  sessions: { visit: LinkSession; link: string | null }[];
+}
+
+/**
+ * Everyone who came without one of your personal links (typed the address, a LinkedIn or Instagram post, a
+ * search…): each visit on its own, with what they did, filterable by where they came from.
+ */
+function OtherVisits({ days, pageName }: { days: number; pageName: (p: string) => string }) {
+  const [filter, setFilter] = useState('');
+  const [more, setMore] = useState(false);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['admin', 'visit-sessions', days],
+    queryFn: () => api<SessionList>(`/api/admin/visits/sessions?days=${days}&kind=other&take=300`),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+  const all = data?.sessions.map((s) => s.visit) ?? [];
+  const sources = [...new Set(all.map((v) => v.source))].map((name) => ({
+    name,
+    n: all.filter((v) => v.source === name).length,
+  }));
+  sources.sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  const shown = filter ? all.filter((v) => v.source === filter) : all;
+  const list = more ? shown : shown.slice(0, 15);
+
+  return (
+    <section className="adm-card adm-links adm-other">
+      <div className="adm-links-h">
+        <div>
+          <h3>Visits without a personal link</h3>
+          <p className="adm-muted">
+            People who opened your site from its plain address: typed it, tapped it in a post or a chat, or found it in
+            a search. Each visit shows where it came from and every page they opened, in order.
+          </p>
+        </div>
+        {data && <span className="adm-other-n">{data.total}</span>}
+      </div>
+      {isLoading ? (
+        <p className="adm-muted">Loading visits…</p>
+      ) : error ? (
+        <p className="adm-warn">Could not load visits: {(error as Error).message}</p>
+      ) : !all.length ? (
+        <p className="adm-muted adm-links-empty">No visits without a personal link in this period.</p>
+      ) : (
+        <>
+          <div className="adm-chips" role="group" aria-label="Filter by source">
+            <button type="button" aria-pressed={!filter} onClick={() => setFilter('')}>
+              All <b>{all.length}</b>
+            </button>
+            {sources.map((x) => (
+              <button
+                key={x.name}
+                type="button"
+                aria-pressed={filter === x.name}
+                onClick={() => setFilter(filter === x.name ? '' : x.name)}
+              >
+                {x.name} <b>{x.n}</b>
+              </button>
+            ))}
+          </div>
+          <ol className="adm-link-hist adm-journeys">
+            {list.map((v, i) => (
+              <Journey key={`${v.at}-${i}`} v={v} pageName={pageName} />
+            ))}
+          </ol>
+          {shown.length > list.length && (
+            <button type="button" className="adm-btn ghost adm-other-more" onClick={() => setMore(true)}>
+              Show all {shown.length}
+            </button>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
 
 /** Visitors today, for the badge next to the Visitors tab. */
 export function useVisitorsToday() {
@@ -327,26 +517,7 @@ function PersonalLinks({ pageName }: { pageName: (p: string) => string }) {
                   <summary>What they looked at</summary>
                   <ol>
                     {l.history.map((h, i) => (
-                      <li key={i}>
-                        <span className="adm-link-when">
-                          {when(h.at)}
-                          <small>
-                            {[
-                              h.device,
-                              h.country && `${flag(h.country)} ${countryName(h.country)}`,
-                              h.source !== 'Direct' && h.source,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')}
-                          </small>
-                        </span>
-                        <span className="adm-link-path">
-                          {h.pages.map((p, k) => (
-                            <span key={k}>{pageName(p)}</span>
-                          ))}
-                          {h.cv && <span className="cv">Downloaded CV</span>}
-                        </span>
-                      </li>
+                      <Journey key={i} v={h} pageName={pageName} />
                     ))}
                   </ol>
                 </details>
@@ -393,6 +564,8 @@ export function VisitorsView() {
     staleTime: 60_000,
   });
   const projectTitle = (id: string) => d.projects.find((p) => p.id === id)?.title ?? id;
+  const pageName = (p: string) => PAGE_NAMES[p] ?? (p.startsWith('/projects/') ? projectTitle(p.slice(10)) : p);
+  const visitTotal = data?.visits ?? data?.views ?? 0;
   const topSource = data?.sources.find((s) => s.name !== 'Direct') ?? data?.sources[0];
 
   return (
@@ -407,7 +580,7 @@ export function VisitorsView() {
         }
       />
       <OwnDevice />
-      <PersonalLinks pageName={(p) => PAGE_NAMES[p] ?? (p.startsWith('/projects/') ? projectTitle(p.slice(10)) : p)} />
+      <PersonalLinks pageName={pageName} />
       <div className="adm-seg" role="tablist" aria-label="Time range">
         {RANGES.map((r) => (
           <button key={r} type="button" role="tab" aria-selected={days === r} onClick={() => setDays(r)}>
@@ -447,6 +620,12 @@ export function VisitorsView() {
               <small>{topSource ? `${topSource.n} visits` : 'none yet'}</small>
             </div>
           </div>
+          {data.visits !== undefined && data.visits > 0 && (
+            <p className="adm-muted adm-vsplit">
+              {data.visits} {data.visits === 1 ? 'visit' : 'visits'}: <b>{data.linkVisits ?? 0}</b> through your
+              personal links, <b>{data.visits - (data.linkVisits ?? 0)}</b> without one.
+            </p>
+          )}
 
           <section className="adm-card">
             <h3>Visitors per day</h3>
@@ -479,11 +658,25 @@ export function VisitorsView() {
               label={projectTitle}
               empty="Nobody has opened a project page yet."
             />
-            <TopList title="Where they came from" items={data.sources} total={data.views} empty="No visits yet." />
+            <TopList
+              title="Where they came from"
+              items={data.sources}
+              total={visitTotal}
+              label={(name) => (
+                <>
+                  {name}
+                  {name !== 'Direct' && data.channels && <small className="adm-vlist-sub"> {channelOf(name)}</small>}
+                </>
+              )}
+              empty="No visits yet."
+            />
+            {data.channels && (
+              <TopList title="Kind of source" items={data.channels} total={visitTotal} empty="No visits yet." />
+            )}
             <TopList
               title="Countries"
               items={data.countries}
-              total={data.views}
+              total={visitTotal}
               label={(c) => (
                 <>
                   <span aria-hidden="true">{flag(c)}</span> {countryName(c)}
@@ -491,14 +684,17 @@ export function VisitorsView() {
               )}
               empty="Countries appear once the site runs on Cloudflare."
             />
-            <TopList title="Devices" items={data.devices} total={data.views} empty="No visits yet." />
+            <TopList title="Devices" items={data.devices} total={visitTotal} empty="No visits yet." />
           </div>
+
+          <OtherVisits days={days} pageName={pageName} />
 
           <p className="adm-muted adm-vnote">
             <Ic n="lock" />
-            Counted without cookies. Each visitor gets a code that changes every day, so a person is never followed from
-            one day to the next; IP addresses are never saved, bots and your own signed-in visits are skipped, and
-            browsers that ask not to be tracked are respected. Visits are kept for about 13 months.
+            Counted without cookies. A visit is one browser tab; each visitor also gets a code that changes every day,
+            so a person is never followed from one day to the next. IP addresses are never saved, the country comes from
+            the device's time zone (so VPNs and carriers routing abroad don't skew it), bots and your own devices are
+            skipped, and browsers that ask not to be tracked are respected. Visits are kept for about 13 months.
           </p>
         </>
       ) : null}

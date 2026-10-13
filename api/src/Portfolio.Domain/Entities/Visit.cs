@@ -11,13 +11,15 @@ public class Visit
     /// <summary>"view" or "cv".</summary>
     public string Kind { get; set; } = "view";
     public string Path { get; set; } = "";
-    /// <summary>Where the visit came from: LinkedIn, Google, GitHub, a site name, or Direct.</summary>
+    /// <summary>Where the visit came from: LinkedIn, Instagram, WhatsApp, Google, a site name, or Direct.</summary>
     public string Source { get; set; } = "";
-    /// <summary>Two-letter country code from Cloudflare, or empty.</summary>
+    /// <summary>Two-letter country code, from the browser's time zone or else Cloudflare, or empty.</summary>
     public string Country { get; set; } = "";
     /// <summary>Mobile, Tablet or Desktop.</summary>
     public string Device { get; set; } = "";
     public string Visitor { get; set; } = "";
     /// <summary>Code of the personal link the visit started from, or empty.</summary>
     public string Ref { get; set; } = "";
+    /// <summary>Random id for one browser tab, so one visit's pages stay together. Empty on older rows.</summary>
+    public string Session { get; set; } = "";
 }
