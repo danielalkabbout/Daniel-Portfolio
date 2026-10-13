@@ -675,6 +675,13 @@ namespace Portfolio.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(12)")
                         .HasDefaultValue("");
 
+                    b.Property<string>("Session")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(60)
