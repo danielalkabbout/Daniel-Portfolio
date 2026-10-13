@@ -128,6 +128,38 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task Visits_without_a_link_are_listed_separately_with_what_they_did()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var visitor = factory.CreateClient();
+        visitor.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        visitor.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Instagram 350.0.0.20.94 (iPhone15,2)");
+        visitor.DefaultRequestHeaders.Add("X-Visitor-Country", "US");
+        var session = Convert.ToHexStringLower(System.Security.Cryptography.RandomNumberGenerator.GetBytes(8));
+        foreach (var (kind, path) in new[] { ("view", "/"), ("view", "/projects/whatsapp"), ("cv", "/cv") })
+            await visitor.PostAsJsonAsync("/api/track",
+                new { kind, path, referrer = "https://l.facebook.com/", tz = "Asia/Beirut", session });
+
+        var admin = await AdminClientAsync();
+        var list = await admin.GetFromJsonAsync<JsonElement>("/api/admin/visits/sessions?days=1&kind=other", Json);
+        var mine = list.GetProperty("sessions").EnumerateArray().Select(x => x.GetProperty("visit"))
+            .First(v => v.GetProperty("pages").EnumerateArray().Any(p => p.GetString() == "/projects/whatsapp")
+                && v.GetProperty("source").GetString() == "Instagram");
+        Assert.Equal("LB", mine.GetProperty("country").GetString());
+        Assert.Equal("Social", mine.GetProperty("channel").GetString());
+        Assert.True(mine.GetProperty("cv").GetBoolean());
+        Assert.Equal(new[] { "/", "/projects/whatsapp", "/cv" },
+            mine.GetProperty("steps").EnumerateArray().Select(p => p.GetProperty("path").GetString()!).ToArray());
+
+        var links = await admin.GetFromJsonAsync<JsonElement>("/api/admin/visits/sessions?days=1&kind=links", Json);
+        Assert.DoesNotContain(links.GetProperty("sessions").EnumerateArray(),
+            x => x.GetProperty("visit").GetProperty("source").GetString() == "Instagram"
+                && x.GetProperty("visit").GetProperty("country").GetString() == "LB");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/admin/visits/sessions")).StatusCode);
+    }
+
+    [SkippableFact]
     public async Task Personal_links_show_who_opened_the_site()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");

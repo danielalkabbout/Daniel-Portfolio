@@ -10,7 +10,12 @@ using Portfolio.Infrastructure.Persistence;
 
 namespace Portfolio.Api.Controllers;
 
-public sealed record TrackRequest(string? Kind, string? Path, string? Referrer, string? Ref = null);
+/// <param name="Referrer">The referrer of the page the visitor landed on (kept for the whole tab).</param>
+/// <param name="Utm">utm_source from the landing address, if any.</param>
+/// <param name="Tz">The browser's IANA time zone, used for the country.</param>
+/// <param name="Session">Random per-tab id, so one visit's pages stay together.</param>
+public sealed record TrackRequest(
+    string? Kind, string? Path, string? Referrer, string? Ref = null, string? Utm = null, string? Tz = null, string? Session = null);
 public sealed record LinkCreate(string? Label, string? Note);
 
 /// <summary>Anonymous visit counts: the site reports page views and CV downloads; the studio reads the totals.</summary>
@@ -34,10 +39,11 @@ public partial class VisitsController(AppDbContext db, VisitTracker tracker, ICo
         var siteHosts = (config.GetSection("Cors:Origins").Get<string[]>() ?? [])
             .Select(o => Uri.TryCreate(o, UriKind.Absolute, out var u) ? u.Host : "")
             .Append("danielalkabbout.pages.dev");
-        var source = VisitTracker.Source(body.Referrer, null);
+        var source = VisitTracker.Source(body.Referrer, ua, body.Utm);
         if (siteHosts.Any(h => h.Length > 0 && string.Equals(source, h, StringComparison.OrdinalIgnoreCase))) source = "Direct";
 
-        var country = VisitTracker.Country(Request.Headers["X-Visitor-Country"].ToString());
+        var country = VisitTracker.Country(Request.Headers["X-Visitor-Country"].ToString(), body.Tz);
+        var session = VisitTracker.Session(body.Session);
         var device = VisitTracker.Device(ua);
         var visitor = tracker.VisitorHash(HttpContext.Connection.RemoteIpAddress?.ToString(), ua);
 
@@ -63,6 +69,7 @@ public partial class VisitsController(AppDbContext db, VisitTracker tracker, ICo
             Country = country,
             Device = device,
             Visitor = visitor,
+            Session = session,
         });
         await db.SaveChangesAsync(ct);
 
@@ -83,9 +90,11 @@ public partial class VisitsController(AppDbContext db, VisitTracker tracker, ICo
         days = Math.Clamp(days, 1, 365);
         var since = DateTime.UtcNow.Date.AddDays(1 - days);
         var rows = await db.Visits.AsNoTracking().Where(v => v.At >= since)
-            .Select(v => new { v.At, v.Kind, v.Path, v.Source, v.Country, v.Device, v.Visitor })
+            .Select(v => new Row(v.At, v.Kind, v.Path, v.Source, v.Country, v.Device, v.Visitor, v.Ref, v.Session))
             .ToListAsync(ct);
         var views = rows.Where(r => r.Kind == "view").ToList();
+        // Where people came from is counted once per visit (one tab), not once per page they opened.
+        var visits = Group(rows);
 
         static object[] Top<T>(IEnumerable<T> items, Func<T, string> key, int take) => items
             .GroupBy(key).Where(g => g.Key.Length > 0)
@@ -110,11 +119,85 @@ public partial class VisitsController(AppDbContext db, VisitTracker tracker, ICo
             perDay,
             pages = Top(views, v => v.Path, 10),
             projects = Top(views.Where(v => v.Path.StartsWith("/projects/")), v => v.Path["/projects/".Length..], 10),
-            sources = Top(views, v => v.Source, 8),
-            countries = Top(views, v => v.Country, 10),
-            devices = Top(views, v => v.Device, 3),
+            visits = visits.Count,
+            linkVisits = visits.Count(v => v.Ref.Length > 0),
+            sources = Top(visits, v => v.Source, 12),
+            channels = Top(visits, v => VisitTracker.Channel(v.Source), 8),
+            countries = Top(visits, v => v.Country, 12),
+            devices = Top(visits, v => v.Device, 3),
         });
     }
+
+    /// <summary>
+    /// What each visitor did, one visit (browser tab) at a time, newest first. <paramref name="kind"/> is
+    /// "other" for visits that didn't come through a personal link, "links" for those that did, or "all".
+    /// </summary>
+    [HttpGet("api/admin/visits/sessions")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Sessions(
+        [FromQuery] int days = 30, [FromQuery] string kind = "other", [FromQuery] int take = 100, CancellationToken ct = default)
+    {
+        days = Math.Clamp(days, 1, 365);
+        take = Math.Clamp(take, 1, 300);
+        var since = DateTime.UtcNow.Date.AddDays(1 - days);
+        var q = db.Visits.AsNoTracking().Where(v => v.At >= since);
+        q = kind switch
+        {
+            "links" => q.Where(v => v.Ref != ""),
+            "all" => q,
+            _ => q.Where(v => v.Ref == ""),
+        };
+        var rows = await q.OrderBy(v => v.At)
+            .Select(v => new Row(v.At, v.Kind, v.Path, v.Source, v.Country, v.Device, v.Visitor, v.Ref, v.Session))
+            .ToListAsync(ct);
+        var all = Group(rows);
+        var labels = await db.TrackedLinks.AsNoTracking().ToDictionaryAsync(l => l.Code, l => l.Label, ct);
+        return Ok(new
+        {
+            total = all.Count,
+            sessions = all.OrderByDescending(s => s.At).Take(take).Select(s => new
+            {
+                visit = Describe(s),
+                link = s.Ref.Length > 0 && labels.TryGetValue(s.Ref, out var label) ? label : null,
+            }),
+        });
+    }
+
+    private sealed record Row(
+        DateTime At, string Kind, string Path, string Source, string Country, string Device, string Visitor, string Ref, string Session);
+
+    private sealed record VisitGroup(DateTime At, DateTime LastAt, string Source, string Country, string Device, string Ref, List<Row> Rows);
+
+    /// <summary>
+    /// One visit = one browser tab (its random session id). Older rows without one fall back to the same
+    /// visitor on the same day. The source, country and device are the ones from the page they landed on.
+    /// </summary>
+    private static List<VisitGroup> Group(IEnumerable<Row> rows) => rows
+        .OrderBy(r => r.At)
+        .GroupBy(r => r.Session.Length > 0 ? "s:" + r.Session : $"v:{r.Visitor}:{DateOnly.FromDateTime(r.At)}:{r.Ref}")
+        .Select(g =>
+        {
+            var list = g.ToList();
+            var first = list.FirstOrDefault(r => r.Kind == "view") ?? list[0];
+            return new VisitGroup(list[0].At, list[^1].At, first.Source, first.Country, first.Device,
+                list.Select(r => r.Ref).FirstOrDefault(r => r.Length > 0) ?? "", list);
+        })
+        .ToList();
+
+    private static object Describe(VisitGroup s) => new
+    {
+        at = s.At,
+        lastAt = s.LastAt,
+        source = s.Source,
+        channel = VisitTracker.Channel(s.Source),
+        country = s.Country,
+        device = s.Device,
+        // Every page in order, with when it was opened; a page opened twice in a row counts once.
+        steps = s.Rows.Where((r, i) => i == 0 || r.Kind != s.Rows[i - 1].Kind || r.Path != s.Rows[i - 1].Path)
+            .Select(r => new { at = r.At, kind = r.Kind, path = r.Path }).ToList(),
+        pages = s.Rows.Where(r => r.Kind == "view").Select(r => r.Path).ToList(),
+        cv = s.Rows.Any(r => r.Kind == "cv"),
+    };
 
     [GeneratedRegex("^[a-z0-9]{4,12}$")]
     private static partial Regex CodeRegex();
@@ -130,26 +213,13 @@ public partial class VisitsController(AppDbContext db, VisitTracker tracker, ICo
         var codes = links.Select(l => l.Code).ToList();
         var visits = await db.Visits.AsNoTracking().Where(v => codes.Contains(v.Ref))
             .OrderBy(v => v.At)
-            .Select(v => new { v.Ref, v.At, v.Kind, v.Path, v.Source, v.Country, v.Device, v.Visitor })
+            .Select(v => new Row(v.At, v.Kind, v.Path, v.Source, v.Country, v.Device, v.Visitor, v.Ref, v.Session))
             .ToListAsync(ct);
 
         return Ok(links.Select(l =>
         {
             var mine = visits.Where(v => v.Ref == l.Code).ToList();
-            // One "session" = one visitor on one day: what they did, in order.
-            var sessions = mine
-                .GroupBy(v => (v.Visitor, Day: DateOnly.FromDateTime(v.At)))
-                .Select(g => new
-                {
-                    at = g.First().At,
-                    lastAt = g.Last().At,
-                    device = g.First().Device,
-                    country = g.First().Country,
-                    source = g.First().Source,
-                    pages = g.Where(v => v.Kind == "view").Select(v => v.Path).ToList(),
-                    cv = g.Any(v => v.Kind == "cv"),
-                })
-                .OrderByDescending(x => x.at).Take(20).ToList();
+            var sessions = Group(mine).OrderByDescending(x => x.At).Take(20).Select(Describe).ToList();
             return new
             {
                 l.Id, l.Code, l.Label, l.Note, l.CreatedAt,
