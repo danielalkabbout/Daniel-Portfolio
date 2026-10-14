@@ -107,6 +107,58 @@ public class VisitTests
         Assert.Equal("Desktop", VisitTracker.Device("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/140.0"));
     }
 
+    [Theory]
+    [InlineData("Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)")]
+    [InlineData("Pingdom.com_bot_version_1.4_(http://www.pingdom.com/)")]
+    [InlineData("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0 Safari/537.36")]
+    [InlineData("Mozilla/5.0 (compatible; Google-InspectionTool/1.0)")]
+    [InlineData("axios/1.7.2")]
+    public void Monitors_and_scripts_are_not_visitors(string ua) => Assert.True(VisitTracker.IsBot(ua));
+
+    [Theory]
+    // A headless browser on a hosting network, with the server's time zone or none: not a person.
+    [InlineData("DigitalOcean, LLC", "US", "America/New_York", true)]
+    [InlineData("Hetzner Online GmbH", "DE", "UTC", true)]
+    [InlineData("Amazon.com, Inc.", "US", "", true)]
+    [InlineData("Google LLC", "US", "Etc/UTC", true)]
+    // A person on a VPN keeps their own time zone.
+    [InlineData("M247 Europe SRL", "US", "Asia/Beirut", false)]
+    // Staff at a big company browse from its network with a real time zone.
+    [InlineData("Microsoft Corporation", "US", "America/Los_Angeles", false)]
+    // Ordinary networks, and iCloud Private Relay's CDNs.
+    [InlineData("Ogero", "LB", "Asia/Beirut", false)]
+    [InlineData("Akamai Technologies, Inc.", "LB", "Asia/Beirut", false)]
+    [InlineData("Cloudflare, Inc.", "US", "", false)]
+    [InlineData("", "US", "", false)]
+    public void Data_centre_browsers_are_told_apart_from_people(string org, string country, string tz, bool expected) =>
+        Assert.Equal(expected, VisitTracker.IsDataCentreVisit(org, country, tz));
+
+    [Fact]
+    public void Live_visitors_start_a_timer_and_drop_off_when_they_leave_or_go_quiet()
+    {
+        var clock = new ManualClock(new DateTimeOffset(2026, 10, 14, 12, 0, 0, TimeSpan.Zero));
+        var live = new LiveVisitors(clock);
+        live.Touch("aaaaaaaaaaaaaaaa", "/", "LinkedIn", "LB", "Mobile", "");
+        clock.Advance(TimeSpan.FromSeconds(30));
+        live.Touch("aaaaaaaaaaaaaaaa", "/projects", "LinkedIn", "LB", "Mobile", "");
+        var v = Assert.Single(live.Now());
+        Assert.Equal("/projects", v.Path);
+        Assert.Equal(clock.GetUtcNow().UtcDateTime.AddSeconds(-30), v.StartedAt);
+
+        live.Touch("bbbbbbbbbbbbbbbb", "/", "Direct", "AE", "Desktop", "");
+        live.End("aaaaaaaaaaaaaaaa");
+        Assert.Equal("bbbbbbbbbbbbbbbb", Assert.Single(live.Now()).Session);
+        clock.Advance(TimeSpan.FromSeconds(80));
+        Assert.Empty(live.Now());
+    }
+
+    private sealed class ManualClock(DateTimeOffset now) : TimeProvider
+    {
+        private DateTimeOffset now = now;
+        public override DateTimeOffset GetUtcNow() => now;
+        public void Advance(TimeSpan by) => now += by;
+    }
+
     [Fact]
     public void The_visitor_hash_is_stable_for_a_day_and_never_the_ip()
     {

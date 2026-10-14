@@ -15,7 +15,8 @@ public partial class VisitTracker
     private DateOnly saltDay;
     private byte[] salt = [];
 
-    [GeneratedRegex(@"bot|crawl|spider|slurp|preview|headless|lighthouse|facebookexternalhit|embedly|curl|wget|python|httpclient|monitor|uptime", RegexOptions.IgnoreCase)]
+    // Crawlers, link previews, uptime monitors (UptimeRobot, Pingdom…), speed tests and scripts.
+    [GeneratedRegex(@"bot|crawl|spider|slurp|preview|headless|lighthouse|facebookexternalhit|embedly|curl|wget|python|httpclient|monitor|uptime|pingdom|statuscake|site24x7|hetrix|freshping|checkly|datadog|newrelic|synthetic|gtmetrix|pagespeed|inspectiontool|mediapartners|feedfetcher|phantomjs|selenium|puppeteer|playwright|webdriver|scrapy|axios|node-fetch|go-http|okhttp|java/|libwww|postman|insomnia", RegexOptions.IgnoreCase)]
     private static partial Regex BotRegex();
 
     [GeneratedRegex(@"iPad|Tablet|PlayBook|Silk|(Android(?!.*Mobile))", RegexOptions.IgnoreCase)]
@@ -26,6 +27,29 @@ public partial class VisitTracker
 
     [GeneratedRegex(@"^/[a-z0-9/_-]{0,120}$")]
     private static partial Regex PathRegex();
+
+    // Big companies whose network carries both their cloud and their own staff (a recruiter at Microsoft
+    // browses from Microsoft's network too), so only visits without a real time zone are dropped there.
+    [GeneratedRegex(@"amazon|\baws\b|google|microsoft|azure|oracle|alibaba|tencent|\bibm\b", RegexOptions.IgnoreCase)]
+    private static partial Regex BigCloudRegex();
+
+    // Hosting companies, where people almost never browse from. CDNs used by iCloud Private Relay
+    // (Akamai, Cloudflare, Fastly) are deliberately not listed.
+    [GeneratedRegex(@"digitalocean|\bovh|hetzner|linode|vultr|choopa|contabo|scaleway|leaseweb|m247|datacamp|ionos|hostinger|godaddy|rackspace|softlayer|hostwinds|colocrossing|psychz|quadranet|serverius|netcup|kamatera|upcloud|cherry servers|phoenixnap|zenlayer|g-core|gcore|fly\.io|render|heroku|vercel|netlify|railway|huawei cloud", RegexOptions.IgnoreCase)]
+    private static partial Regex HostingRegex();
+
+    /// <summary>
+    /// An automated browser in a data centre, from Cloudflare's network organisation and the device time
+    /// zone. Someone on a VPN keeps their own time zone, so they're still counted, in their real country.
+    /// </summary>
+    public static bool IsDataCentreVisit(string? asOrganization, string? networkCountry, string? timeZone)
+    {
+        if (string.IsNullOrWhiteSpace(asOrganization)) return false;
+        var tz = TimeZoneCountries.Lookup(timeZone);
+        if (BigCloudRegex().IsMatch(asOrganization)) return tz is null;
+        if (HostingRegex().IsMatch(asOrganization)) return tz is null || tz == Country(networkCountry);
+        return false;
+    }
 
     public static bool IsBot(string? userAgent) => string.IsNullOrWhiteSpace(userAgent) || BotRegex().IsMatch(userAgent);
 

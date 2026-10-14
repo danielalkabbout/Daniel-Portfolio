@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { useStudio } from './studio-state';
 import { Ic, useUi } from './ui';
@@ -22,6 +22,9 @@ interface VisitStats {
   visits?: number;
   linkVisits?: number;
   channels?: Count[];
+  /** Average active seconds per visit, and per page view of each page. */
+  avgSeconds?: number;
+  pageTime?: Count[];
   perDay: { date: string; views: number; visitors: number }[];
   pages: Count[];
   projects: Count[];
@@ -153,12 +156,14 @@ function TopList({
   items,
   total,
   label = (s) => s,
+  value = (n) => n,
   empty,
 }: {
   title: string;
   items: Count[];
   total: number;
   label?: (name: string) => React.ReactNode;
+  value?: (n: number) => React.ReactNode;
   empty: string;
 }) {
   const max = Math.max(1, ...items.map((x) => x.n));
@@ -168,10 +173,10 @@ function TopList({
       {items.length ? (
         <ol>
           {items.map((x) => (
-            <li key={x.name} title={`${x.n} (${Math.round((x.n / Math.max(total, 1)) * 100)}%)`}>
+            <li key={x.name} title={total ? `${x.n} (${Math.round((x.n / total) * 100)}%)` : undefined}>
               <span className="adm-vlist-bar" style={{ width: `${(x.n / max) * 100}%` }} aria-hidden="true" />
               <span className="adm-vlist-name">{label(x.name)}</span>
-              <b>{x.n}</b>
+              <b>{value(x.n)}</b>
             </li>
           ))}
         </ol>
@@ -186,6 +191,8 @@ interface Step {
   at: string;
   kind: 'view' | 'cv';
   path: string;
+  /** Active seconds on this page (visits since the timer was added). */
+  seconds?: number;
 }
 
 interface LinkSession {
@@ -193,8 +200,13 @@ interface LinkSession {
   lastAt: string;
   device: string;
   country: string;
+  /** The network's own country, when it differs from the device's (a VPN or relay). */
+  networkCountry?: string;
+  timeZone?: string;
   source: string;
   channel?: string;
+  /** Active time on the site, in seconds. */
+  seconds?: number;
   steps?: Step[];
   pages: string[];
   cv: boolean;
@@ -208,6 +220,7 @@ interface PersonalLink {
   createdAt: string;
   visits: number;
   sessions: number;
+  seconds?: number;
   cv: boolean;
   lastAt: string | null;
   history: LinkSession[];
@@ -230,13 +243,28 @@ const when = (iso: string) =>
     minute: '2-digit',
   });
 
-const duration = (from: string, to: string) => {
-  const s = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 1000);
-  if (s < 10) return '';
+/** 75 → "1m 15s". */
+const fmtTime = (s: number) => {
+  s = Math.max(0, Math.round(s));
   if (s < 60) return `${s}s`;
   if (s < 3600) return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
-  return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+  return `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}m`;
 };
+/** A running clock for the live view: 1:05, 12:40, 1:02:09. */
+const clock = (s: number) => {
+  s = Math.max(0, Math.floor(s));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const ss = String(s % 60).padStart(2, '0');
+  return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
+};
+
+/** The country, with the network's country when a VPN or relay put the address somewhere else. */
+const place = (v: { country: string; networkCountry?: string; timeZone?: string }) =>
+  v.country
+    ? `${flag(v.country)} ${countryName(v.country)}` +
+      (v.networkCountry ? ` (network in ${countryName(v.networkCountry)})` : '')
+    : '';
 
 const CHANNEL_HINT: Record<string, string> = {
   Direct: 'typed the address, a bookmark, or an app that hides where the link was',
@@ -264,16 +292,15 @@ function Journey({ v, pageName }: { v: LinkSession; pageName: (p: string) => str
     ...v.pages.map((path) => ({ at: v.at, kind: 'view' as const, path })),
     ...(v.cv ? [{ at: v.lastAt, kind: 'cv' as const, path: '/cv' }] : []),
   ];
-  const long = duration(v.at, v.lastAt);
+  const secs = v.seconds ?? Math.round((new Date(v.lastAt).getTime() - new Date(v.at).getTime()) / 1000);
+  const long = secs >= 1 ? fmtTime(secs) : '';
   return (
     <li>
       <span className="adm-link-when">
         {when(v.at)}
         <small>
           <SourceTag source={v.source} channel={v.channel} />
-          {[v.device, v.country && `${flag(v.country)} ${countryName(v.country)}`, long && `stayed ${long}`]
-            .filter(Boolean)
-            .map((x) => ` · ${x}`)}
+          {[v.device, place(v), long && `on the site ${long}`].filter(Boolean).map((x) => ` · ${x}`)}
         </small>
       </span>
       <span className="adm-link-path">
@@ -281,13 +308,94 @@ function Journey({ v, pageName }: { v: LinkSession; pageName: (p: string) => str
           <span
             key={k}
             className={st.kind === 'cv' ? 'cv' : undefined}
-            title={v.steps ? new Date(st.at).toLocaleTimeString('en-GB') : undefined}
+            title={v.steps ? `Opened at ${new Date(st.at).toLocaleTimeString('en-GB')}` : undefined}
           >
             {st.kind === 'cv' ? 'Downloaded CV' : pageName(st.path)}
+            {st.kind === 'view' && !!st.seconds && <em>{fmtTime(st.seconds)}</em>}
           </span>
         ))}
       </span>
     </li>
+  );
+}
+
+interface LiveVisitor {
+  startedAt: string;
+  lastSeen: string;
+  path: string;
+  source: string;
+  channel: string;
+  country: string;
+  device: string;
+  link: string | null;
+}
+
+/** Ticks every second, so live timers move. */
+function useNow(ms = 1000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), ms);
+    return () => window.clearInterval(t);
+  }, [ms]);
+  return now;
+}
+
+/**
+ * Who is on the site right now: a timer starts when someone opens it and stops when they close the tab,
+ * switch away, or stop interacting for a few minutes. Refreshed every 10 seconds.
+ */
+function LiveNow({ pageName }: { pageName: (p: string) => string }) {
+  const { data, error } = useQuery({
+    queryKey: ['admin', 'visits-live'],
+    queryFn: async () => {
+      const r = await api<{ serverTime: string; visitors: LiveVisitor[] }>('/api/admin/visits/live');
+      // The studio's clock and the server's can differ; line the timers up with the server.
+      return { ...r, skew: Date.now() - new Date(r.serverTime).getTime() };
+    },
+    refetchInterval: 10_000,
+    staleTime: 5_000,
+  });
+  const now = useNow();
+  const list = data?.visitors ?? [];
+  return (
+    <section className={list.length ? 'adm-card adm-live on' : 'adm-card adm-live'} aria-live="polite">
+      <div className="adm-live-h">
+        <span className="adm-live-dot" aria-hidden="true" />
+        <h3>
+          {list.length
+            ? `${list.length} ${list.length === 1 ? 'person' : 'people'} on your site now`
+            : 'Nobody on your site right now'}
+        </h3>
+        <small className="adm-muted">updates every 10 seconds</small>
+      </div>
+      {error ? (
+        <p className="adm-warn">Could not load: {(error as Error).message}</p>
+      ) : list.length ? (
+        <ul className="adm-live-list">
+          {list.map((v, i) => (
+            <li key={`${v.startedAt}-${i}`}>
+              <b className="adm-live-clock" title={`Started at ${new Date(v.startedAt).toLocaleTimeString('en-GB')}`}>
+                {clock((now - (data?.skew ?? 0) - new Date(v.startedAt).getTime()) / 1000)}
+              </b>
+              <span className="adm-live-main">
+                <span>
+                  {v.link ? <strong>{v.link}</strong> : null}
+                  {v.link ? ' · ' : ''}on <strong>{pageName(v.path)}</strong>
+                </span>
+                <small>
+                  <SourceTag source={v.source} channel={v.channel} />
+                  {[v.device, place(v)].filter(Boolean).map((x) => ` · ${x}`)}
+                </small>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="adm-muted adm-live-empty">
+          When someone opens your site, they appear here with a timer that runs until they leave.
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -493,7 +601,7 @@ function PersonalLinks({ pageName }: { pageName: (p: string) => string }) {
                   <b>{l.label}</b>
                   <small>
                     {l.lastAt
-                      ? `Opened ${l.sessions} ${l.sessions === 1 ? 'time' : 'times'} · ${l.visits} pages · last ${ago(l.lastAt)}`
+                      ? `Opened ${l.sessions} ${l.sessions === 1 ? 'time' : 'times'} · ${l.visits} pages${l.seconds ? ` · ${fmtTime(l.seconds)} on the site` : ''} · last ${ago(l.lastAt)}`
                       : `Not opened yet · made ${ago(l.createdAt)}`}
                     {l.note && ` · ${l.note}`}
                   </small>
@@ -557,6 +665,8 @@ function OwnDevice() {
 /** Anonymous visitor counts: how many people came, from where, and what they looked at. */
 export function VisitorsView() {
   const { d } = useStudio();
+  const { ask, toast } = useUi();
+  const qc = useQueryClient();
   const [days, setDays] = useState<(typeof RANGES)[number]>(30);
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['admin', 'visits', days],
@@ -574,12 +684,41 @@ export function VisitorsView() {
         title="Visitors"
         desc="Who came to your site, from where, and what they looked at. Anonymous: no cookies and no IP addresses are stored."
         actions={
-          <button type="button" className="adm-btn ghost" disabled={isFetching} onClick={() => void refetch()}>
-            {isFetching ? 'Refreshing…' : 'Refresh'}
-          </button>
+          <>
+            <button
+              type="button"
+              className="adm-btn ghost"
+              onClick={() =>
+                void (async () => {
+                  if (
+                    !(await ask({
+                      title: 'Clear all visitor data?',
+                      text: 'Every recorded visit is deleted, so the counts start again from zero. Your personal links stay. This cannot be undone.',
+                      ok: 'Clear visits',
+                      danger: true,
+                    }))
+                  )
+                    return;
+                  try {
+                    const r = await api<{ deleted: number }>('/api/admin/visits', { method: 'DELETE' });
+                    await qc.invalidateQueries({ queryKey: ['admin'] });
+                    toast(`Cleared ${r.deleted} visits`);
+                  } catch (err) {
+                    toast((err as Error).message, 'err');
+                  }
+                })()
+              }
+            >
+              Clear visits
+            </button>
+            <button type="button" className="adm-btn ghost" disabled={isFetching} onClick={() => void refetch()}>
+              {isFetching ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </>
         }
       />
       <OwnDevice />
+      <LiveNow pageName={pageName} />
       <PersonalLinks pageName={pageName} />
       <div className="adm-seg" role="tablist" aria-label="Time range">
         {RANGES.map((r) => (
@@ -608,6 +747,11 @@ export function VisitorsView() {
               <b>{data.views}</b>
               <span>Page views</span>
               <small>{data.visitors ? `${(data.views / data.visitors).toFixed(1)} per visitor` : 'none yet'}</small>
+            </div>
+            <div>
+              <b className="adm-vstats-word">{data.avgSeconds ? fmtTime(data.avgSeconds) : '–'}</b>
+              <span>Time on site</span>
+              <small>average per visit, while active</small>
             </div>
             <div>
               <b>{data.cvDownloads}</b>
@@ -651,6 +795,18 @@ export function VisitorsView() {
               label={(p) => PAGE_NAMES[p] ?? (p.startsWith('/projects/') ? `Project: ${projectTitle(p.slice(10))}` : p)}
               empty="No page views yet."
             />
+            {data.pageTime && (
+              <TopList
+                title="Time per page"
+                items={data.pageTime}
+                total={0}
+                label={(p) =>
+                  PAGE_NAMES[p] ?? (p.startsWith('/projects/') ? `Project: ${projectTitle(p.slice(10))}` : p)
+                }
+                value={fmtTime}
+                empty="Shows once visitors spend time on your pages."
+              />
+            )}
             <TopList
               title="Projects opened"
               items={data.projects}
