@@ -1,0 +1,47 @@
+# Temporary: runs the C# code scanning queries and prints the results as annotations, then gets removed.
+name: CodeQL report
+
+on:
+  push:
+    branches: [code-scanning]
+    paths: ['.github/workflows/codeql-report.yml']
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: api/global.json
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: csharp
+          build-mode: manual
+          queries: security-extended
+      - run: dotnet build api/Portfolio.slnx
+      - uses: github/codeql-action/analyze@v4
+        with:
+          upload: never
+          output: sarif
+      - name: Print results
+        run: |
+          python3 - <<'PY'
+          import json, glob
+          n = 0
+          for f in glob.glob('sarif/*.sarif'):
+              d = json.load(open(f))
+              for run in d['runs']:
+                  rules = {r['id']: r for r in run['tool']['driver'].get('rules', [])}
+                  for r in run['results']:
+                      loc = r['locations'][0]['physicalLocation']
+                      sev = rules.get(r['ruleId'], {}).get('properties', {}).get('security-severity', '')
+                      msg = r['message']['text'].replace('\n', ' ')[:300]
+                      print(f"::warning file={loc['artifactLocation']['uri']},line={loc['region']['startLine']}::[{r['ruleId']} {sev}] {msg}")
+                      n += 1
+          print(f"::notice::{n} results")
+          PY
