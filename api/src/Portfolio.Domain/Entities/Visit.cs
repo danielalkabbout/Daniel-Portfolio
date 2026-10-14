@@ -8,7 +8,7 @@ public class Visit
 {
     public long Id { get; set; }
     public DateTime At { get; set; }
-    /// <summary>"view" or "cv".</summary>
+    /// <summary>"view", "cv", or "time" (seconds spent on <see cref="Path"/>, sent when the visitor moves on or leaves).</summary>
     public string Kind { get; set; } = "view";
     public string Path { get; set; } = "";
     /// <summary>Where the visit came from: LinkedIn, Instagram, WhatsApp, Google, a site name, or Direct.</summary>
@@ -22,4 +22,10 @@ public class Visit
     public string Ref { get; set; } = "";
     /// <summary>Random id for one browser tab, so one visit's pages stay together. Empty on older rows.</summary>
     public string Session { get; set; } = "";
+    /// <summary>For "time" rows: active seconds on the page (tab visible and not idle).</summary>
+    public int Seconds { get; set; }
+    /// <summary>The device's IANA time zone, which decides <see cref="Country"/> when it names one.</summary>
+    public string TimeZone { get; set; } = "";
+    /// <summary>The country of the visitor's network (Cloudflare's IP lookup), kept to show VPNs and relays.</summary>
+    public string NetworkCountry { get; set; } = "";
 }

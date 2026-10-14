@@ -105,6 +105,7 @@ builder.Services.AddScoped<AdminAccounts>();
 builder.Services.AddSingleton<MediaStorage>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<VisitTracker>();
+builder.Services.AddSingleton<LiveVisitors>();
 builder.Services.AddHttpClient<TurnstileVerifier>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<EmailNotifier>(c => c.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<DeployHook>(c => c.Timeout = TimeSpan.FromSeconds(15));

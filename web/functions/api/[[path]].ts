@@ -26,6 +26,7 @@ const STRIP = [
   'x-edge-key',
   'x-client-ip',
   'x-visitor-country',
+  'x-visitor-org',
   'x-forwarded-for',
   'x-real-ip',
   'forwarded',
@@ -45,9 +46,12 @@ export async function onRequest({ request, env }: Context): Promise<Response> {
   const ip = request.headers.get('cf-connecting-ip');
   if (ip) headers.set('x-client-ip', ip);
   if (env.EDGE_KEY) headers.set('x-edge-key', env.EDGE_KEY);
-  // Country only (two letters), for the studio's anonymous visitor counts.
-  const country = (request as Request & { cf?: { country?: string } }).cf?.country;
-  if (country) headers.set('x-visitor-country', country);
+  // For the studio's anonymous visitor counts: the network's country (two letters) and the name of the
+  // network's owner, which tells automated browsers in data centres apart from people.
+  const cf = (request as Request & { cf?: { country?: string; asOrganization?: string } }).cf;
+  if (cf?.country) headers.set('x-visitor-country', cf.country);
+  const org = (cf?.asOrganization ?? '').replace(/[^\w .,&()-]/g, '').slice(0, 100);
+  if (org) headers.set('x-visitor-org', org);
 
   const init: RequestInit = {
     method: request.method,

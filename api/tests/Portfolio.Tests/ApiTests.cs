@@ -160,6 +160,61 @@ public class ApiTests(ApiFactory factory)
     }
 
     [SkippableFact]
+    public async Task Time_on_each_page_is_recorded_and_live_visitors_are_shown()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var visitor = factory.CreateClient();
+        visitor.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        visitor.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/141.0");
+        var session = Convert.ToHexStringLower(System.Security.Cryptography.RandomNumberGenerator.GetBytes(8));
+        object Body(string kind, string path, int? seconds = null, bool? leaving = null) =>
+            new { kind, path, tz = "Asia/Beirut", session, seconds, leaving, referrer = "https://www.bing.com/" };
+
+        await visitor.PostAsJsonAsync("/api/track", Body("view", "/"));
+        var admin = await AdminClientAsync();
+        var live = await admin.GetFromJsonAsync<JsonElement>("/api/admin/visits/live", Json);
+        Assert.Contains(live.GetProperty("visitors").EnumerateArray(), v => v.GetProperty("source").GetString() == "Bing");
+
+        await visitor.PostAsJsonAsync("/api/track", Body("time", "/", 42));
+        await visitor.PostAsJsonAsync("/api/track", Body("view", "/projects/noise"));
+        // Out-of-range times are ignored.
+        await visitor.PostAsJsonAsync("/api/track", Body("time", "/", 999999));
+        await visitor.PostAsJsonAsync("/api/track", Body("time", "/projects/noise", 75, true));
+
+        live = await admin.GetFromJsonAsync<JsonElement>("/api/admin/visits/live", Json);
+        Assert.DoesNotContain(live.GetProperty("visitors").EnumerateArray(), v => v.GetProperty("source").GetString() == "Bing");
+
+        var list = await admin.GetFromJsonAsync<JsonElement>("/api/admin/visits/sessions?days=1&kind=other", Json);
+        var mine = list.GetProperty("sessions").EnumerateArray().Select(x => x.GetProperty("visit"))
+            .First(v => v.GetProperty("source").GetString() == "Bing");
+        Assert.Equal(117, mine.GetProperty("seconds").GetInt32());
+        var steps = mine.GetProperty("steps").EnumerateArray().ToList();
+        Assert.Equal(new[] { "/", "/projects/noise" }, steps.Select(x => x.GetProperty("path").GetString()!).ToArray());
+        Assert.Equal(new[] { 42, 75 }, steps.Select(x => x.GetProperty("seconds").GetInt32()).ToArray());
+
+        var stats = await admin.GetFromJsonAsync<JsonElement>("/api/admin/visits?days=1", Json);
+        Assert.True(stats.GetProperty("avgSeconds").GetInt32() > 0);
+        Assert.Contains(stats.GetProperty("pageTime").EnumerateArray(), p => p.GetProperty("name").GetString() == "/projects/noise");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/admin/visits/live")).StatusCode);
+    }
+
+    [SkippableFact]
+    public async Task Data_centre_browsers_are_not_counted()
+    {
+        Skip.IfNot(factory.Enabled, "TEST_DB is not set");
+        var bot = factory.CreateClient();
+        bot.DefaultRequestHeaders.Add("X-Requested-With", "fetch");
+        bot.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/141.0");
+        bot.DefaultRequestHeaders.Add("X-Visitor-Country", "US");
+        bot.DefaultRequestHeaders.Add("X-Visitor-Org", "DigitalOcean, LLC");
+        await bot.PostAsJsonAsync("/api/track", new { kind = "view", path = "/projects/todo", tz = "America/New_York", referrer = "https://duckduckgo.com/" });
+
+        var list = await (await AdminClientAsync()).GetFromJsonAsync<JsonElement>("/api/admin/visits/sessions?days=1&kind=other", Json);
+        Assert.DoesNotContain(list.GetProperty("sessions").EnumerateArray(),
+            x => x.GetProperty("visit").GetProperty("source").GetString() == "DuckDuckGo");
+    }
+
+    [SkippableFact]
     public async Task Personal_links_show_who_opened_the_site()
     {
         Skip.IfNot(factory.Enabled, "TEST_DB is not set");

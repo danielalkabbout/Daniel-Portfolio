@@ -10756,6 +10756,108 @@ main {
   }
 }
 
+/* ---------- studio: live visitors and timers ---------- */
+.adm-vstats {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+@media (max-width: 1180px) {
+  .adm-vstats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .adm-vstats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.adm-live {
+  margin-bottom: 1.2rem;
+}
+.adm-live-h {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.adm-live-h h3 {
+  margin: 0;
+  flex: 1;
+}
+.adm-live-h small {
+  font-size: 0.78rem;
+}
+.adm-live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--muted);
+  opacity: 0.6;
+}
+.adm-live.on .adm-live-dot {
+  background: var(--mint);
+  opacity: 1;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint) 55%, transparent);
+  animation: adm-live-pulse 1.8s ease-out infinite;
+}
+@keyframes adm-live-pulse {
+  to {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adm-live.on .adm-live-dot {
+    animation: none;
+  }
+}
+.adm-live.on {
+  border-color: color-mix(in srgb, var(--mint) 35%, var(--line));
+}
+.adm-live-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.88rem;
+}
+.adm-live-list {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.adm-live-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg2);
+}
+.adm-live-clock {
+  flex: none;
+  min-width: 4.6rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--mint);
+}
+.adm-live-main {
+  display: grid;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+.adm-live-main small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.adm-link-path span em {
+  font-style: normal;
+  margin-left: 0.4rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- studio: Echo AI test ---------- */
 .adm-echotest {
   display: flex;
