@@ -1,9 +1,8 @@
 name: Web lint, test and build
 
-# Checks pull requests. On main, the Pipeline workflow calls this before deploying.
+# Checks every pull request (the main branch's ruleset requires these checks, so they must always run). On main, the Pipeline workflow calls this before deploying.
 on:
   pull_request:
-    paths: ['web/**', '.github/workflows/web.yml']
   workflow_call:
 
 # The workflow only reads the code; it never writes to the repository.
