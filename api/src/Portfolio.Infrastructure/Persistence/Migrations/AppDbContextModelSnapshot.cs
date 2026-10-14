@@ -663,6 +663,13 @@ namespace Portfolio.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
+                    b.Property<string>("NetworkCountry")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -674,6 +681,9 @@ namespace Portfolio.Infrastructure.Persistence.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("character varying(12)")
                         .HasDefaultValue("");
+
+                    b.Property<int>("Seconds")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Session")
                         .IsRequired()
@@ -687,6 +697,13 @@ namespace Portfolio.Infrastructure.Persistence.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
 
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Visitor")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -697,6 +714,8 @@ namespace Portfolio.Infrastructure.Persistence.Migrations
                     b.HasIndex("At");
 
                     b.HasIndex("Ref");
+
+                    b.HasIndex("Session");
 
                     b.ToTable("Visits");
                 });
