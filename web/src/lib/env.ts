@@ -53,3 +53,13 @@ export async function copyText(text: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * The visible text of an HTML string, read with the browser's own parser (which never runs scripts),
+ * instead of stripping tags with a regex, which can be fooled by nested or broken tags.
+ */
+export function htmlToText(html: string): string {
+  if (typeof DOMParser === 'undefined') return html;
+  const body = new DOMParser().parseFromString(html.replace(/<br\s*\/?>/gi, ' '), 'text/html').body;
+  return body.textContent ?? '';
+}

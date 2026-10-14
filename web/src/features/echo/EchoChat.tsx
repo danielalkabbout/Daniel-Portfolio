@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import avatar from '../../assets/echo-avatar.jpg';
 import { api, API_ENABLED } from '../../api/client';
 import { useSite } from '../../api/content';
-import { escapeHtml, finePointer, reduceMotion } from '../../lib/env';
+import { escapeHtml, finePointer, htmlToText, reduceMotion } from '../../lib/env';
 import { EchoEngine, GREETING, START_CHIPS, type EchoAnswer } from './engine';
 
 interface Msg {
@@ -104,7 +104,7 @@ export function EchoChat() {
       { role: 'user', content: question.slice(0, 300) },
       {
         role: 'assistant',
-        content: (plainForHistory ?? res.a.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim().slice(0, 1500),
+        content: (plainForHistory ?? htmlToText(res.a)).replace(/\s+/g, ' ').trim().slice(0, 1500),
       },
     );
     history.current = history.current.slice(-12);
@@ -147,7 +147,7 @@ export function EchoChat() {
       }
     }
     if (!plain) {
-      const len = res.a.replace(/<[^>]+>/g, '').length;
+      const len = htmlToText(res.a).length;
       await wait(reduce ? 0 : Math.min(500 + len * 9, 1700));
     }
     if (my !== run.current) return;
