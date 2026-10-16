@@ -113,6 +113,12 @@ but makes it heavier.
 1. resend.com > **API Keys** > create one.
 2. Add to Render: `Email__ResendApiKey` = the key, `Email__To` = the address you signed up to Resend with.
 
+The same email setup also sends you one email per visit, from a personal link or the plain address,
+with where they came from, their country, device and first page. To change that, add `Email__VisitAlerts`
+on Render: `all` (default), `links` (personal links only) or `off`. `Email__VisitAlertsPerDay` (default 60)
+caps visit emails per day so Resend's free daily limit is never used up; past it you get one email saying
+alerts are paused until the next day.
+
 ### 9. Continuous deployment
 From now on, merging to `main` runs the **Pipeline** workflow: it tests what changed, deploys the API,
 rebuilds the website, then checks production. Nothing deploys if a test fails.

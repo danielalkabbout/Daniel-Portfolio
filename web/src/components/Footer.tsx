@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useSite } from '../api/content';
 import { copyText } from '../lib/env';
-import { ChatIcon, GitHubIcon, LinkedInIcon, MailIcon } from '../lib/icons';
+import { ChatIcon, GitHubIcon, LinkedInIcon } from '../lib/icons';
 import { pageText } from '../content/defaults';
 
 function beirutTime() {
@@ -19,7 +19,6 @@ export function Footer() {
   const site = useSite();
   const p = site.profile;
   const text = pageText(site, 'footer');
-  const ref = useRef<HTMLElement>(null);
   const [time, setTime] = useState(beirutTime);
   const [copied, setCopied] = useState(false);
   const [year] = useState(() => new Date().getFullYear());
@@ -27,21 +26,6 @@ export function Footer() {
   useEffect(() => {
     const t = setInterval(() => setTime(beirutTime()), 20000);
     return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    const ft = ref.current;
-    if (!ft) return;
-    const io = new IntersectionObserver(
-      (es) =>
-        es.forEach((e) => {
-          if (e.isIntersecting) ft.classList.add('in');
-          else if (e.boundingClientRect.top > 0) ft.classList.remove('in');
-        }),
-      { threshold: 0.25 },
-    );
-    io.observe(ft);
-    return () => io.disconnect();
   }, []);
 
   const copy = async () => {
@@ -52,7 +36,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="ft" id="ft" ref={ref}>
+    <footer className="ft" id="ft">
       <div className="ft-glow" aria-hidden="true" />
       <div className="wrap">
         <div className="ft-cta">
@@ -102,61 +86,36 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="ft-grid">
-          <div className="ft-about">
-            <p>{text.intro}</p>
-            <div className="ft-clock">
-              <span className="ft-dot" aria-hidden="true" />
-              <span>
-                Lebanon, local time <b>{time || '--:--'}</b>
-              </span>
-            </div>
-          </div>
-          <nav aria-label="Footer">
-            <h3>Explore</h3>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-            <Link to="/experience">Experience</Link>
-            <Link to="/projects">Projects</Link>
-            <Link to="/services">Services</Link>
-            <Link to="/cv">CV</Link>
-          </nav>
-          <div>
-            <h3>Services</h3>
-            <Link to="/services">AI agents</Link>
-            <Link to="/services">WhatsApp bots</Link>
-            <Link to="/services">Websites and web apps</Link>
-            <Link to="/services">Mobile apps</Link>
-            <Link to="/services">SharePoint and backend</Link>
-          </div>
-          <div>
-            <h3>Connect</h3>
-            <a href={`mailto:${p.email}`} className="ft-soc">
-              <MailIcon />
-              Email
-            </a>
-            <a href={`https://wa.me/${p.whatsapp}`} target="_blank" rel="noopener" className="ft-soc">
-              <ChatIcon />
-              WhatsApp
-            </a>
-            <a href={p.linkedin} target="_blank" rel="noopener" className="ft-soc">
-              <LinkedInIcon />
-              LinkedIn
-            </a>
-            <a href={p.github} target="_blank" rel="noopener" className="ft-soc">
-              <GitHubIcon />
-              GitHub
-            </a>
+        <div className="ft-row">
+          <p className="ft-about">{text.intro}</p>
+          <div className="ft-clock">
+            <span className="ft-dot" aria-hidden="true" />
+            <span>
+              Lebanon, local time <b>{time || '--:--'}</b>
+            </span>
           </div>
         </div>
-      </div>
 
-      <div className="ft-sig" aria-hidden="true">
-        <span>Daniel Al Kabbout</span>
-      </div>
-
-      <div className="wrap ft-bottom">
-        <span>© {year} Daniel Al Kabbout. Designed and built with care in Lebanon.</span>
+        <div className="ft-bottom">
+          <span>© {year} Daniel Al Kabbout</span>
+          <nav className="ft-soc" aria-label="Find me on">
+            <a
+              href={`https://wa.me/${p.whatsapp}`}
+              target="_blank"
+              rel="noopener"
+              aria-label="WhatsApp"
+              title="WhatsApp"
+            >
+              <ChatIcon />
+            </a>
+            <a href={p.linkedin} target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+              <LinkedInIcon />
+            </a>
+            <a href={p.github} target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+              <GitHubIcon />
+            </a>
+          </nav>
+        </div>
       </div>
     </footer>
   );

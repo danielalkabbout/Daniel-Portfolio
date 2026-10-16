@@ -436,27 +436,6 @@ html.intro-reveal .hero .wrap > div:last-child > * {
   height: 34px;
   padding: 9px;
 }
-.ft-grid {
-  padding: 2.25rem 0 0.5rem;
-  gap: 2rem;
-}
-.ft-grid h3 {
-  margin-bottom: 0.7rem;
-}
-.ft-grid nav,
-.ft-grid > div:not(.ft-about) {
-  gap: 0.4rem;
-}
-.ft-grid a {
-  font-size: 0.92rem;
-}
-.ft-about p {
-  margin-bottom: 1rem;
-  font-size: 0.92rem;
-}
-.ft-sig {
-  padding-top: 2.4rem;
-}
 @media (min-width: 901px) {
   .ft-cta {
     flex-wrap: nowrap;
@@ -468,20 +447,6 @@ html.intro-reveal .hero .wrap > div:last-child > * {
     font-size: clamp(1.8rem, 3vw, 2.7rem);
     white-space: nowrap;
   }
-}
-@media (max-width: 600px) {
-  .ft-grid > div:nth-child(3) {
-    display: none;
-  }
-  .ft-about {
-    grid-column: span 2;
-  }
-  .ft-sig span {
-    font-size: 2.6rem;
-  }
-}
-.ft-sig span {
-  font-size: clamp(3rem, 8vw, 6.5rem);
 }
 .ft-bottom {
   padding-top: 1rem;
@@ -509,7 +474,20 @@ html.intro-reveal .hero .wrap > div:last-child > * {
   .ft-cta h2 {
     font-size: 2rem;
   }
-  .ft-grid {
-    gap: 1.5rem 1rem;
+}
+
+/* Compact footer: less space under the call to action, and on phones the social buttons sit on the left
+   so the floating back-to-top button never covers them. */
+@media (max-width: 700px) {
+  .ft-cta {
+    padding-bottom: 2rem;
+  }
+  .ft-row {
+    padding: 1.6rem 0 1.2rem;
+  }
+  .ft-bottom {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.9rem;
   }
 }

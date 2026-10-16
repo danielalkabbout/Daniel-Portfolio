@@ -5236,7 +5236,7 @@ button.pj-link {
   overflow: hidden;
   border-top: 1px solid var(--line);
   background: linear-gradient(180deg, var(--bg), var(--bg2));
-  padding-top: 6rem;
+  padding-top: 4rem;
 }
 .ft-glow {
   position: absolute;
@@ -5360,77 +5360,29 @@ button.pj-link {
   color: var(--mint);
   border-color: var(--mint);
 }
-.ft-grid {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr 1fr;
-  gap: 2.5rem;
-  padding: 3.5rem 0 1rem;
-}
-.ft-grid h3 {
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--muted);
-  margin: 0 0 1rem;
-}
-.ft-grid nav,
-.ft-grid > div:not(.ft-about) {
+.ft-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-.ft-grid a {
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 0.97rem;
-  width: fit-content;
-  position: relative;
-}
-.ft-grid a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 1.5px;
-  background: linear-gradient(90deg, var(--sky), var(--mint));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.ft-grid a:hover::after {
-  transform: scaleX(1);
-}
-.ft-soc {
-  display: inline-flex !important;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.55rem;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
+  padding: 2.2rem 0 1.6rem;
 }
-.ft-soc svg {
-  width: 17px;
-  height: 17px;
+.ft-about {
+  margin: 0;
   color: var(--muted);
-  transition: color 0.2s;
-}
-.ft-soc:hover svg {
-  color: var(--sky);
-}
-.ft-about p {
-  margin: 0 0 1.4rem;
-  color: var(--muted);
-  max-width: 40ch;
-  font-size: 0.97rem;
+  max-width: 60ch;
+  font-size: 0.95rem;
 }
 .ft-clock {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.55rem 0.9rem;
+  padding: 0.5rem 0.85rem;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--surface);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: var(--muted);
 }
 .ft-clock b {
@@ -5444,46 +5396,44 @@ button.pj-link {
   background: var(--sun);
   box-shadow: 0 0 10px var(--sun);
 }
-.ft-sig {
-  position: relative;
-  text-align: center;
-  line-height: 0.8;
-  padding: 2.5rem 0 0;
-  pointer-events: none;
-  user-select: none;
-}
-.ft-sig span {
-  display: inline-block;
-  font-family: 'Herr Von Muellerhoff', 'Segoe Script', cursive;
-  font-size: clamp(4.5rem, 15vw, 13rem);
-  white-space: nowrap;
-  color: transparent;
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--sky) 55%, transparent);
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--sky) 30%, transparent),
-    color-mix(in srgb, var(--mint) 30%, transparent)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  clip-path: inset(-40% 100% -25% -5%);
-  transition: clip-path 2.4s cubic-bezier(0.55, 0.1, 0.35, 1);
-  padding: 0 0.2em;
-}
-.ft.in .ft-sig span {
-  clip-path: inset(-40% -5% -25% -5%);
-}
 .ft-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  padding-top: 1.5rem;
-  padding-bottom: calc(1.6rem + env(safe-area-inset-bottom, 0px));
+  padding-top: 1.1rem;
+  padding-bottom: calc(1.3rem + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--line);
   font-size: 0.85rem;
   color: var(--muted);
+}
+.ft-soc {
+  display: flex;
+  gap: 0.4rem;
+}
+.ft-soc a {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+.ft-soc a:hover {
+  color: var(--sky);
+  border-color: color-mix(in srgb, var(--sky) 45%, var(--line));
+  transform: translateY(-2px);
+}
+.ft-soc svg {
+  width: 18px;
+  height: 18px;
 }
 .to-top {
   position: fixed;
@@ -5564,23 +5514,13 @@ button.pj-link {
   transform: translateY(-3px);
 }
 @media (max-width: 900px) {
-  .ft-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .ft-about {
-    grid-column: span 2;
-  }
   .ft-actions {
     align-items: flex-start;
   }
 }
 @media (max-width: 480px) {
   .ft {
-    padding-top: 4.5rem;
-  }
-  .ft-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem 1.5rem;
+    padding-top: 3rem;
   }
   .ft-big {
     font-size: 1rem;
@@ -5590,10 +5530,6 @@ button.pj-link {
   .ft-cta h2 span,
   .ft-kicker b {
     animation: none;
-  }
-  .ft-sig span {
-    clip-path: none;
-    transition: none;
   }
 }
 /* ===== services redesign ===== */
@@ -9855,17 +9791,6 @@ body.menu-open .to-top {
   }
   .xp-map-sec .head p {
     font-size: 0.95rem;
-  }
-}
-
-/* Footer links: comfortable to tap on a phone. */
-@media (max-width: 700px) {
-  .ft-grid nav,
-  .ft-grid > div:not(.ft-about) {
-    gap: 0.1rem;
-  }
-  .ft-grid a {
-    padding: 0.55rem 0;
   }
 }
 

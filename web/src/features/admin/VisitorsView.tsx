@@ -433,7 +433,8 @@ function OtherVisits({ days, pageName }: { days: number; pageName: (p: string) =
           <h3>Visits without a personal link</h3>
           <p className="adm-muted">
             People who opened your site from its plain address: typed it, tapped it in a post or a chat, or found it in
-            a search. Each visit shows where it came from and every page they opened, in order.
+            a search. Each visit shows where it came from and every page they opened, in order, and you get an email
+            when a new visit starts (if email alerts are on).
           </p>
         </div>
         {data && <span className="adm-other-n">{data.total}</span>}
