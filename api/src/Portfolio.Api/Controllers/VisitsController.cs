@@ -86,15 +86,21 @@ public partial class VisitsController(
         }
         live.Touch(session, path, source, country, device, code);
 
-        // A personal link: keep its code, and email you the first time that person opens the site each day.
         TrackedLink? link = null;
         if (code.Length > 0)
             link = await db.TrackedLinks.AsNoTracking().FirstOrDefaultAsync(l => l.Code == code, ct);
-        if (link is not null && kind == "view")
+
+        // An email for each new visit (one browser tab), from a personal link or the plain address.
+        if (kind == "view" && email.WantsVisitAlert(link is not null))
         {
             var today = DateTime.UtcNow.Date;
-            var seenToday = await db.Visits.AnyAsync(v => v.Ref == link.Code && v.Visitor == visitor && v.At >= today, ct);
-            if (!seenToday) await email.NotifyLinkOpenedAsync(link.Label, path, country, device, ct);
+            var seen = session.Length > 0
+                ? await db.Visits.AnyAsync(v => v.Session == session && v.Kind == "view", ct)
+                : await db.Visits.AnyAsync(v => v.Visitor == visitor && v.Kind == "view" && v.At >= today, ct);
+            if (!seen)
+                await email.NotifyVisitAsync(new VisitAlert(
+                    link?.Label, path, source, VisitTracker.Channel(source), country, networkCountry, device,
+                    VisitTracker.Browser(ua), DateTime.UtcNow), ct);
         }
 
         db.Visits.Add(new Visit

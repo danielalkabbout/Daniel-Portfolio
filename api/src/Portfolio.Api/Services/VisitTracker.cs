@@ -56,6 +56,30 @@ public partial class VisitTracker
     public static string Device(string? userAgent) =>
         userAgent is null ? "" : TabletRegex().IsMatch(userAgent) ? "Tablet" : MobileRegex().IsMatch(userAgent) ? "Mobile" : "Desktop";
 
+    /// <summary>The browser and system in plain words, e.g. "Chrome on Android" or "Safari on iPhone".</summary>
+    public static string Browser(string? userAgent)
+    {
+        var ua = userAgent ?? "";
+        if (ua.Length == 0) return "";
+        string Has(string s) => ua.Contains(s, StringComparison.OrdinalIgnoreCase) ? s : "";
+        var browser =
+            Has("Edg/") != "" ? "Edge" :
+            Has("OPR/") != "" || Has("Opera") != "" ? "Opera" :
+            Has("SamsungBrowser") != "" ? "Samsung Internet" :
+            Has("Firefox/") != "" || Has("FxiOS") != "" ? "Firefox" :
+            Has("CriOS") != "" || Has("Chrome/") != "" ? "Chrome" :
+            Has("Safari/") != "" || Has("AppleWebKit") != "" ? "Safari" : "";
+        var os =
+            Has("iPhone") != "" ? "iPhone" :
+            Has("iPad") != "" ? "iPad" :
+            Has("Android") != "" ? "Android" :
+            Has("Windows") != "" ? "Windows" :
+            Has("Mac OS X") != "" || Has("Macintosh") != "" ? "Mac" :
+            Has("CrOS") != "" ? "ChromeOS" :
+            Has("Linux") != "" ? "Linux" : "";
+        return browser.Length > 0 && os.Length > 0 ? $"{browser} on {os}" : browser + os;
+    }
+
     /// <summary>A clean page path, or null for anything that shouldn't be counted (the studio, odd input).</summary>
     public static string? CleanPath(string? path)
     {

@@ -59,6 +59,10 @@ public sealed class EmailOptions
     public string To { get; set; } = "";
     /// <summary>Linked from every email, to open your requests.</summary>
     public string StudioUrl { get; set; } = "https://danielalkabbout.pages.dev/admin";
+    /// <summary>Visit emails: "all" (every visit), "links" (personal links only) or "off".</summary>
+    public string VisitAlerts { get; set; } = "all";
+    /// <summary>Most visit emails per day (Resend's free plan allows 100 emails a day in total).</summary>
+    public int VisitAlertsPerDay { get; set; } = 60;
 }
 
 public sealed class PublishOptions
